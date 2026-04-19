@@ -24,6 +24,7 @@ real-vs-ai-detector/static/fft/
 real-vs-ai-detector/static/similarity/
 real-vs-ai-detector/static/patches/
 real-vs-ai-detector/static/evaluation/
+real-vs-ai-detector/static/combined/
 real-vs-ai-detector/logs/
 
 # IDE

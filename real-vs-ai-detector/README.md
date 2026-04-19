@@ -1,3 +1,11 @@
+---
+title: TRUESIGHT
+emoji: 👁️
+colorFrom: indigo
+colorTo: purple
+sdk: docker
+app_port: 5000
+---
 # 🔍 Real vs AI Image Detector — Production System
 
 A **production-grade, explainable, multi-model deep learning system** that detects AI-generated images vs real photographs. Features ensemble voting, Grad-CAM heatmaps, FFT frequency analysis, and a premium web UI.
