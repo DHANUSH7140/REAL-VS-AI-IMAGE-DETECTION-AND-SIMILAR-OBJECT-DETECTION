@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Production-grade AI image detection system with Grad-CAM explainability, ensemble voting, FFT analysis, YOLO object detection, and multi-model comparison." />
+  <title>Real vs AI Image Detector — Advanced</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+  <!-- ──── Header ──── -->
+  <div class="header">
+    <h1>🔍 Real vs AI Image Detector</h1>
+    <p>Advanced multi-model detection with explainability</p>
+    <div class="badge-row">
+      <span class="tech-badge">🧠 Deep Learning</span>
+      <span class="tech-badge">🔥 Grad-CAM</span>
+      <span class="tech-badge">📊 FFT Analysis</span>
+      <span class="tech-badge">🎯 Ensemble</span>
+      <span class="tech-badge">📦 YOLO Detection</span>
+    </div>
+  </div>
+
+  <!-- ──── Main Layout ──── -->
+  <div class="app-layout">
+
+    <!-- LEFT COLUMN: Upload + Results -->
+    <div class="main-column">
+
+      <!-- Upload Card -->
+      <div class="card" id="uploadCard">
+        <div class="card-title"><span class="icon">📤</span> Upload Image</div>
+
+        <!-- Drop Zone -->
+        <div class="drop-zone" id="dropZone">
+          <span class="icon">📁</span>
+          <p>Drag &amp; drop an image here<br>or <span class="browse-link" id="browseLink">browse files</span></p>
+          <input type="file" id="fileInput" accept="image/*" />
+        </div>
+
+        <!-- Image Preview -->
+        <div class="preview-container" id="previewContainer">
+          <img id="previewImg" src="" alt="Preview" />
+          <!-- ROI Canvas overlays the image (for Similar mode) -->
+          <div class="roi-canvas-container" id="roiCanvasContainer">
+            <canvas id="roiCanvas"></canvas>
+            <div class="roi-instructions" id="roiInstructions">
+              <span class="icon">✏️</span> Click and drag on the image to select a region (ROI)
+            </div>
+            <div class="roi-coords" id="roiCoords" style="display:none;"></div>
+          </div>
+          <div class="quality-badge">Original Quality</div>
+          <button class="remove-btn" id="removeBtn" title="Remove image">&times;</button>
+        </div>
+
+        <!-- Mode Selector -->
+        <div class="model-selector">
+          <div>
+            <input type="radio" name="model" id="modelDetect" value="detect" checked />
+            <label for="modelDetect">
+              <span class="model-icon">🔍</span>
+              Detect
+              <span class="model-sub">AI vs Real</span>
+            </label>
+          </div>
+          <div>
+            <input type="radio" name="model" id="modelExplain" value="explain" />
+            <label for="modelExplain">
+              <span class="model-icon">🧠</span>
+              Explain
+              <span class="model-sub">Grad-CAM</span>
+            </label>
+          </div>
+          <div>
+            <input type="radio" name="model" id="modelSimilar" value="similar" />
+            <label for="modelSimilar">
+              <span class="model-icon">🎯</span>
+              Find Similar
+              <span class="model-sub">ROI Match</span>
+            </label>
+          </div>
+        </div>
+
+
+
+
+        <!-- Advanced Similarity Controls -->
+        <div class="threshold-control" id="thresholdControl" style="display:none; margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+          <div style="margin-bottom: 10px;">
+            <label style="display: block; font-size: 0.85rem; margin-bottom: 5px;">Matching Threshold Method:</label>
+            <select id="thresholdMethod" style="width: 100%; padding: 8px; border-radius: 6px; background: #1a2235; color: white; border: 1px solid #2a3449;">
+              <option value="top_k">Top-K Items</option>
+              <option value="statistical" selected>Statistical Deviation</option>
+              <option value="percentile">Top Percentile</option>
+            </select>
+          </div>
+          <div style="margin-bottom: 10px;">
+            <label style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+              <span>Clustering EPS:</span> <span id="epsValue" style="color: var(--accent);">0.55</span>
+            </label>
+            <input type="range" id="epsSlider" min="0.1" max="0.9" step="0.05" value="0.55" style="width: 100%; margin-top: 5px;" />
+          </div>
+          <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <button id="btnClustering" type="button" class="view-toggle-btn active" style="flex: 1; padding: 6px; font-size: 0.8rem; background: var(--accent); color: white; border: none; border-radius: 4px; cursor:pointer;">Cluster View</button>
+            <button id="btnSimilarity" type="button" class="view-toggle-btn" style="flex: 1; padding: 6px; font-size: 0.8rem; background: #1a2235; color: #8a9bb8; border: 1px solid #2a3449; border-radius: 4px; cursor:pointer;">Similarity View</button>
+          </div>
+        </div>
+
+        <!-- Check Button -->
+        <button class="btn-check" id="checkBtn" disabled>🔍 Analyze Image</button>
+
+        <!-- Error Toast -->
+        <div class="error-toast" id="errorToast"></div>
+      </div>
+
+      <!-- Standard Results Section -->
+      <div class="results-section" id="resultsSection">
+
+        <!-- Prediction Result Header -->
+        <div class="result-header" id="resultHeader">
+          <div class="gauge-container">
+            <div class="confidence-gauge" id="confidenceGauge" style="--gauge-pct: 0">
+              <span class="gauge-value" id="gaugeValue">0%</span>
+            </div>
+          </div>
+          <div class="result-label" id="resultLabel"></div>
+          <div class="result-confidence" id="resultConf"></div>
+          <div class="result-model-badge" id="resultModel"></div>
+        </div>
+
+        <!-- Individual Model Results (shown for ensemble) -->
+        <div class="individual-results" id="individualResults" style="display:none;">
+          <div class="section-title">📊 Individual Model Scores</div>
+          <div id="individualList"></div>
+        </div>
+
+        <!-- Explanation Card -->
+        <div class="explanation-card" id="explanationCard" style="display:none;">
+          <div class="section-title">🧠 Model Explanation</div>
+
+          <!-- Confidence Distribution -->
+          <div class="confidence-distribution" id="confDistribution">
+            <div class="dist-labels">
+              <span class="dist-label-real">✅ REAL</span>
+              <span class="dist-label-ai">🤖 AI GENERATED</span>
+            </div>
+            <div class="distribution-bar">
+              <div class="dist-fill-real" id="distFillReal" style="width:50%">50%</div>
+              <div class="dist-fill-ai" id="distFillAi" style="width:50%">50%</div>
+            </div>
+          </div>
+
+          <!-- Explanation Text -->
+          <div class="explanation-text" id="explanationText"></div>
+
+          <!-- Pattern Indicators -->
+          <div class="pattern-indicators" id="patternIndicators"></div>
+
+          <!-- Key Factors -->
+          <div class="key-factors" id="keyFactors"></div>
+
+          <!-- Verdict -->
+          <div class="verdict-reasoning" id="verdictReasoning"></div>
+        </div>
+
+        <!-- Visualizations Grid -->
+        <div class="viz-grid" id="vizGrid">
+          <!-- Grad-CAM -->
+          <div class="viz-card" id="gradcamCard" style="display:none;">
+            <div class="viz-title">🔥 Grad-CAM Heatmap</div>
+            <img id="gradcamImg" src="" alt="Grad-CAM Heatmap" />
+          </div>
+
+          <!-- Original Image -->
+          <div class="viz-card" id="originalCard" style="display:none;">
+            <div class="viz-title">🖼️ Original Image</div>
+            <img id="originalImg" src="" alt="Original" />
+          </div>
+
+          <!-- FFT Analysis -->
+          <div class="viz-card full-width" id="fftCard" style="display:none;">
+            <div class="viz-title">📡 FFT Frequency Analysis</div>
+            <div class="fft-metrics" id="fftMetrics"></div>
+            <img id="fftImg" src="" alt="FFT Spectrum" />
+            <div class="fft-summary" id="fftSummary"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Combined Results Section (YOLO + Classifier) -->
+      <div class="results-section" id="combinedResultsSection">
+
+        <!-- Combined Summary Header -->
+        <div class="combined-header" id="combinedHeader">
+          <div class="combined-stats">
+            <div class="stat-item">
+              <div class="stat-value" id="statTotal">0</div>
+              <div class="stat-label">Objects Detected</div>
+            </div>
+            <div class="stat-item real">
+              <div class="stat-value" id="statReal">0</div>
+              <div class="stat-label">Real Regions</div>
+            </div>
+            <div class="stat-item ai">
+              <div class="stat-value" id="statAI">0</div>
+              <div class="stat-label">AI Regions</div>
+            </div>
+          </div>
+          <div class="combined-summary" id="combinedSummary"></div>
+          <div class="result-model-badge" id="combinedModelBadge"></div>
+        </div>
+
+        <!-- Annotated Image -->
+        <div class="viz-grid">
+          <div class="viz-card" id="annotatedCard">
+            <div class="viz-title">🎯 YOLO + Grad-CAM Annotated</div>
+            <img id="annotatedImg" src="" alt="Annotated Image" />
+          </div>
+          <div class="viz-card" id="combinedOriginalCard">
+            <div class="viz-title">🖼️ Original Image</div>
+            <img id="combinedOriginalImg" src="" alt="Original" />
+          </div>
+        </div>
+
+        <!-- Per-Region Results Table -->
+        <div class="regions-table-card" id="regionsCard" style="display:none;">
+          <div class="section-title">📋 Per-Region Classification</div>
+          <div class="regions-table-wrapper">
+            <table class="regions-table" id="regionsTable">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Object</th>
+                  <th>YOLO Conf</th>
+                  <th>Classification</th>
+                  <th>AI/Real Conf</th>
+                  <th>Grad-CAM</th>
+                </tr>
+              </thead>
+              <tbody id="regionsBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- FFT Analysis for combined mode -->
+        <div class="viz-card full-width" id="combinedFftCard" style="display:none;">
+          <div class="viz-title">📡 FFT Frequency Analysis</div>
+          <div class="fft-metrics" id="combinedFftMetrics"></div>
+          <img id="combinedFftImg" src="" alt="FFT Spectrum" />
+          <div class="fft-summary" id="combinedFftSummary"></div>
+        </div>
+
+      </div>
+
+      <!-- Similarity Results Section (ADVANCED) -->
+      <div class="results-section" id="similarResultsSection">
+
+        <!-- Stats Header -->
+        <div class="similarity-header" id="similarityHeader">
+          <div class="similarity-stats">
+            <div class="stat-item">
+              <div class="stat-value" id="simStatDetected">0</div>
+              <div class="stat-label">Objects Detected</div>
+            </div>
+            <div class="stat-item real">
+              <div class="stat-value" id="simStatMatches">0</div>
+              <div class="stat-label">Similar Found</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="simStatClusters">0</div>
+              <div class="stat-label">Clusters</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="simStatThreshold">—</div>
+              <div class="stat-label">Threshold</div>
+            </div>
+          </div>
+          <div class="result-model-badge" id="simModelBadge">SIMILARITY SEARCH</div>
+        </div>
+
+        <!-- Cluster Legend -->
+        <div class="cluster-legend" id="clusterLegend" style="display:none;">
+          <div class="legend-title">🎨 Cluster Legend</div>
+          <div class="legend-items" id="legendItems"></div>
+        </div>
+
+        <!-- Annotated Images (togglable) -->
+        <div class="viz-grid">
+          <div class="viz-card" id="simAnnotatedCard">
+            <div class="viz-title">🎯 <span id="simVizLabel">Similarity Results</span></div>
+            <img id="simAnnotatedImg" src="" alt="Annotated Image" style="cursor: pointer;" title="Click to view full size" onclick="window.open(this.src, '_blank')" />
+            <div style="text-align: center; margin-top: 10px;">
+              <a id="simDownloadBtn" href="#" download="similarity_results.png" style="text-decoration: none; background: var(--accent); color: white; padding: 6px 12px; border-radius: 4px; font-size: 0.85rem; display: inline-block;">⬇️ Download Image</a>
+            </div>
+          </div>
+          <div class="viz-card" id="simOriginalCard">
+            <div class="viz-title">🖼️ Original Image</div>
+            <img id="simOriginalImg" src="" alt="Original" />
+          </div>
+        </div>
+
+        <!-- Match Table (with Cluster column) -->
+        <div class="regions-table-card" id="simMatchesCard" style="display:none;">
+          <div class="section-title">📋 Matched Objects (by Similarity)</div>
+          <div class="regions-table-wrapper">
+            <table class="regions-table" id="simMatchesTable">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Object</th>
+                  <th>Cluster</th>
+                  <th>YOLO Conf</th>
+                  <th>Similarity</th>
+                  <th>Score Bar</th>
+                </tr>
+              </thead>
+              <tbody id="simMatchesBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Cluster Summary -->
+        <div class="cluster-summary-card" id="clusterSummaryCard" style="display:none;">
+          <div class="section-title">📊 Cluster Summary</div>
+          <div class="cluster-counts" id="clusterCounts"></div>
+        </div>
+
+        <!-- Processing Time -->
+        <div class="processing-time" id="simProcessingTime"></div>
+
+      </div>
+
+      <!-- Patch Analysis Results Section -->
+      <div class="results-section" id="patchResultsSection">
+
+        <div class="similarity-header" id="patchHeader">
+          <div class="similarity-stats">
+            <div class="stat-item">
+              <div class="stat-value" id="patchStatCount">0</div>
+              <div class="stat-label">Patches Analyzed</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="patchStatScore">0%</div>
+              <div class="stat-label">Overall AI Score</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="patchStatArtifacts">0</div>
+              <div class="stat-label">Suspicious Regions</div>
+            </div>
+          </div>
+          <div class="result-model-badge" id="patchModelBadge">PATCH ANALYSIS (EfficientNet)</div>
+        </div>
+
+        <div class="patch-summary" id="patchSummary"></div>
+
+        <div class="viz-card" id="patchHeatmapCard">
+          <div class="viz-title">🗺️ Patch AI Probability Heatmap</div>
+          <img id="patchHeatmapImg" src="" alt="Patch Heatmap" />
+        </div>
+
+        <div class="regions-table-card" id="patchArtifactsCard" style="display:none;">
+          <div class="section-title">⚠️ Suspicious Regions</div>
+          <div class="regions-table-wrapper">
+            <table class="regions-table" id="patchArtifactsTable">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Patch</th>
+                  <th>Location</th>
+                  <th>AI Probability</th>
+                  <th>Score Bar</th>
+                </tr>
+              </thead>
+              <tbody id="patchArtifactsBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="processing-time" id="patchProcessingTime"></div>
+
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN: History -->
+    <div class="history-panel card" id="historyPanel">
+      <div class="card-title"><span class="icon">🕒</span> Upload History</div>
+      <div id="historyList">
+        <div class="history-empty">
+          <span class="empty-icon">📭</span>
+          No predictions yet.<br>Upload an image to get started!
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer">Powered by TensorFlow, Keras, YOLOv8 &amp; Flask — Multi-Model AI Detection System</div>
+
+  <!-- ──── JavaScript ──── -->
+  <script>
+    (() => {
+      /* ── DOM refs ──────────────────────────────────────────── */
+      const dropZone         = document.getElementById('dropZone');
+      const fileInput        = document.getElementById('fileInput');
+      const browseLink       = document.getElementById('browseLink');
+      const previewContainer = document.getElementById('previewContainer');
+      const previewImg       = document.getElementById('previewImg');
+      const removeBtn        = document.getElementById('removeBtn');
+      const checkBtn         = document.getElementById('checkBtn');
+      const errorToast       = document.getElementById('errorToast');
+
+      // Standard Results
+      const resultsSection   = document.getElementById('resultsSection');
+      const resultHeader     = document.getElementById('resultHeader');
+      const resultLabel      = document.getElementById('resultLabel');
+      const resultConf       = document.getElementById('resultConf');
+      const resultModel      = document.getElementById('resultModel');
+      const confidenceGauge  = document.getElementById('confidenceGauge');
+      const gaugeValue       = document.getElementById('gaugeValue');
+
+      // Individual model results
+      const individualResults = document.getElementById('individualResults');
+      const individualList    = document.getElementById('individualList');
+
+      // Visualizations
+      const gradcamCard = document.getElementById('gradcamCard');
+      const gradcamImg  = document.getElementById('gradcamImg');
+      const originalCard = document.getElementById('originalCard');
+      const originalImg  = document.getElementById('originalImg');
+      const fftCard     = document.getElementById('fftCard');
+      const fftMetrics  = document.getElementById('fftMetrics');
+      const fftImg      = document.getElementById('fftImg');
+      const fftSummary  = document.getElementById('fftSummary');
+
+      // Explanation Card
+      const explanationCard   = document.getElementById('explanationCard');
+      const distFillReal      = document.getElementById('distFillReal');
+      const distFillAi        = document.getElementById('distFillAi');
+      const explanationText   = document.getElementById('explanationText');
+      const patternIndicators = document.getElementById('patternIndicators');
+      const keyFactors        = document.getElementById('keyFactors');
+      const verdictReasoning  = document.getElementById('verdictReasoning');
+
+      // Combined Results
+      const combinedResultsSection = document.getElementById('combinedResultsSection');
+      const statTotal   = document.getElementById('statTotal');
+      const statReal    = document.getElementById('statReal');
+      const statAI      = document.getElementById('statAI');
+      const combinedSummary   = document.getElementById('combinedSummary');
+      const combinedModelBadge = document.getElementById('combinedModelBadge');
+      const annotatedImg      = document.getElementById('annotatedImg');
+      const combinedOriginalImg = document.getElementById('combinedOriginalImg');
+      const regionsCard  = document.getElementById('regionsCard');
+      const regionsBody  = document.getElementById('regionsBody');
+      const combinedFftCard    = document.getElementById('combinedFftCard');
+      const combinedFftMetrics = document.getElementById('combinedFftMetrics');
+      const combinedFftImg     = document.getElementById('combinedFftImg');
+      const combinedFftSummary = document.getElementById('combinedFftSummary');
+
+      // Similarity Results
+      const similarResultsSection = document.getElementById('similarResultsSection');
+      const simStatDetected  = document.getElementById('simStatDetected');
+      const simStatMatches   = document.getElementById('simStatMatches');
+      const simStatThreshold = document.getElementById('simStatThreshold');
+      const simAnnotatedImg  = document.getElementById('simAnnotatedImg');
+      const simOriginalImg   = document.getElementById('simOriginalImg');
+      const simMatchesCard   = document.getElementById('simMatchesCard');
+      const simMatchesBody   = document.getElementById('simMatchesBody');
+      const simModelBadge    = document.getElementById('simModelBadge');
+      const simStatClusters  = document.getElementById('simStatClusters');
+      const clusterLegend    = document.getElementById('clusterLegend');
+      const legendItems      = document.getElementById('legendItems');
+      const clusterSummaryCard = document.getElementById('clusterSummaryCard');
+      const clusterCounts    = document.getElementById('clusterCounts');
+      const simProcessingTime = document.getElementById('simProcessingTime');
+      const simVizLabel      = document.getElementById('simVizLabel');
+
+      // Patch Results
+      const patchResultsSection = document.getElementById('patchResultsSection');
+      const patchStatCount    = document.getElementById('patchStatCount');
+      const patchStatScore    = document.getElementById('patchStatScore');
+      const patchStatArtifacts = document.getElementById('patchStatArtifacts');
+      const patchSummary      = document.getElementById('patchSummary');
+      const patchHeatmapImg   = document.getElementById('patchHeatmapImg');
+      const patchArtifactsCard = document.getElementById('patchArtifactsCard');
+      const patchArtifactsBody = document.getElementById('patchArtifactsBody');
+      const patchProcessingTime = document.getElementById('patchProcessingTime');
+      const patchModelBadge    = document.getElementById('patchModelBadge');
+
+      // ROI Canvas
+      const roiCanvasContainer = document.getElementById('roiCanvasContainer');
+      const roiCanvas    = document.getElementById('roiCanvas');
+      const roiCtx       = roiCanvas.getContext('2d');
+      const roiInstructions = document.getElementById('roiInstructions');
+      const roiCoords    = document.getElementById('roiCoords');
+
+      // Advanced Controls
+      const thresholdControl = document.getElementById('thresholdControl');
+      const thresholdMethod  = document.getElementById('thresholdMethod');
+      const epsSlider        = document.getElementById('epsSlider');
+      const epsValue         = document.getElementById('epsValue');
+      const btnClustering    = document.getElementById('btnClustering');
+      const btnSimilarity    = document.getElementById('btnSimilarity');
+      let currentViewMode    = 'clustering';
+      let lastAdvancedData   = null;  // Store last response for toggle
+
+      // History
+      const historyList = document.getElementById('historyList');
+
+      let selectedFile = null;
+      const history = [];
+
+      // ROI state
+      let roiStartX = 0, roiStartY = 0;
+      let roiEndX = 0, roiEndY = 0;
+      let isDrawing = false;
+      let hasROI = false;
+      // Natural image dimensions (before CSS scaling)
+      let naturalW = 0, naturalH = 0;
+
+      /* ── Helpers ───────────────────────────────────────────── */
+      function isSimilarMode() {
+        return document.querySelector('input[name="model"]:checked')?.value === 'similar';
+      }
+
+      function showError(msg) {
+        errorToast.textContent = msg;
+        errorToast.classList.add('show');
+        hideAllResults();
+      }
+      function hideError() { errorToast.classList.remove('show'); }
+
+      function hideAllResults() {
+        resultsSection.classList.remove('show');
+        combinedResultsSection.classList.remove('show');
+        similarResultsSection.classList.remove('show');
+        patchResultsSection.classList.remove('show');
+      }
+
+      function updateSimilarModeUI() {
+        const similar = isSimilarMode();
+        roiCanvasContainer.classList.toggle('show', similar && previewContainer.classList.contains('show'));
+        thresholdControl.classList.toggle('show', similar);
+        if (!similar) {
+          hasROI = false;
+          roiCoords.style.display = 'none';
+          roiInstructions.style.display = '';
+        }
+      }
+
+      // EPS slider handler
+      epsSlider.addEventListener('input', () => {
+        epsValue.textContent = parseFloat(epsSlider.value).toFixed(2);
+      });
+
+      // View mode toggle buttons
+      btnClustering.addEventListener('click', () => {
+        currentViewMode = 'clustering';
+        btnClustering.classList.add('active');
+        btnSimilarity.classList.remove('active');
+        if (lastAdvancedData) {
+          simAnnotatedImg.src = lastAdvancedData.cluster_image_url || lastAdvancedData.annotated_image_url;
+          simVizLabel.textContent = 'Cluster View';
+        }
+      });
+      btnSimilarity.addEventListener('click', () => {
+        currentViewMode = 'similarity';
+        btnSimilarity.classList.add('active');
+        btnClustering.classList.remove('active');
+        if (lastAdvancedData) {
+          simAnnotatedImg.src = lastAdvancedData.annotated_image_url;
+          simVizLabel.textContent = 'Similarity View';
+        }
+      });
+
+      // Listen for model selector changes
+      document.querySelectorAll('input[name="model"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+          updateSimilarModeUI();
+          hideAllResults();
+          if (isSimilarMode() && selectedFile) {
+            setupROICanvas();
+          }
+        });
+      });
+
+      // Threshold method is handled by dropdown (thresholdMethod)
+      // EPS slider handler is above (epsSlider)
+
+      function setPreview(file) {
+        selectedFile = file;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          previewImg.src = e.target.result;
+          previewContainer.classList.add('show');
+          dropZone.style.display = 'none';
+          checkBtn.disabled = false;
+          hideError();
+          hideAllResults();
+
+          // Wait for image to load to get natural dimensions
+          previewImg.onload = () => {
+            naturalW = previewImg.naturalWidth;
+            naturalH = previewImg.naturalHeight;
+            if (isSimilarMode()) {
+              setupROICanvas();
+            }
+          };
+        };
+        reader.readAsDataURL(file);
+      }
+
+      function resetUI() {
+        selectedFile = null;
+        previewImg.src = '';
+        previewContainer.classList.remove('show');
+        dropZone.style.display = '';
+        checkBtn.disabled = true;
+        fileInput.value = '';
+        hideError();
+        hideAllResults();
+        hasROI = false;
+        roiCanvasContainer.classList.remove('show');
+        roiCoords.style.display = 'none';
+        roiInstructions.style.display = '';
+      }
+
+      /* ── ROI Canvas Setup ────────────────────────────────────── */
+      function setupROICanvas() {
+        roiCanvasContainer.classList.add('show');
+        roiInstructions.style.display = '';
+        roiCoords.style.display = 'none';
+        hasROI = false;
+
+        // Match canvas pixel buffer to the displayed image size
+        // The image uses object-fit: contain, so we need its actual rendered area
+        const imgW = previewImg.offsetWidth;
+        const imgH = previewImg.offsetHeight;
+
+        roiCanvas.width = imgW;
+        roiCanvas.height = imgH;
+
+        clearCanvasOverlay();
+      }
+
+      function clearCanvasOverlay() {
+        roiCtx.clearRect(0, 0, roiCanvas.width, roiCanvas.height);
+      }
+
+      function drawROIRect(x1, y1, x2, y2) {
+        clearCanvasOverlay();
+
+        // Semi-transparent overlay outside ROI
+        roiCtx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+        roiCtx.fillRect(0, 0, roiCanvas.width, roiCanvas.height);
+
+        // Clear the ROI region
+        const w = x2 - x1;
+        const h = y2 - y1;
+        roiCtx.clearRect(x1, y1, w, h);
+
+        // Dashed cyan border
+        roiCtx.strokeStyle = '#00ffff';
+        roiCtx.lineWidth = 2;
+        roiCtx.setLineDash([8, 4]);
+        roiCtx.strokeRect(x1, y1, w, h);
+        roiCtx.setLineDash([]);
+
+        // Corner markers
+        const cs = 10;
+        roiCtx.strokeStyle = '#00ffff';
+        roiCtx.lineWidth = 3;
+        // Top-left
+        roiCtx.beginPath(); roiCtx.moveTo(x1, y1 + cs); roiCtx.lineTo(x1, y1); roiCtx.lineTo(x1 + cs, y1); roiCtx.stroke();
+        // Top-right
+        roiCtx.beginPath(); roiCtx.moveTo(x2 - cs, y1); roiCtx.lineTo(x2, y1); roiCtx.lineTo(x2, y1 + cs); roiCtx.stroke();
+        // Bottom-left
+        roiCtx.beginPath(); roiCtx.moveTo(x1, y2 - cs); roiCtx.lineTo(x1, y2); roiCtx.lineTo(x1 + cs, y2); roiCtx.stroke();
+        // Bottom-right
+        roiCtx.beginPath(); roiCtx.moveTo(x2 - cs, y2); roiCtx.lineTo(x2, y2); roiCtx.lineTo(x2, y2 - cs); roiCtx.stroke();
+      }
+
+      function canvasToNatural(cx, cy) {
+        // Convert canvas pixel coords to natural image coords
+        const scaleX = naturalW / roiCanvas.width;
+        const scaleY = naturalH / roiCanvas.height;
+        return {
+          x: Math.round(cx * scaleX),
+          y: Math.round(cy * scaleY)
+        };
+      }
+
+      /* ── ROI Mouse Events ────────────────────────────────────── */
+      roiCanvas.addEventListener('mousedown', (e) => {
+        const rect = roiCanvas.getBoundingClientRect();
+        roiStartX = e.clientX - rect.left;
+        roiStartY = e.clientY - rect.top;
+        isDrawing = true;
+      });
+
+      roiCanvas.addEventListener('mousemove', (e) => {
+        if (!isDrawing) return;
+        const rect = roiCanvas.getBoundingClientRect();
+        roiEndX = Math.max(0, Math.min(e.clientX - rect.left, roiCanvas.width));
+        roiEndY = Math.max(0, Math.min(e.clientY - rect.top, roiCanvas.height));
+
+        const x1 = Math.min(roiStartX, roiEndX);
+        const y1 = Math.min(roiStartY, roiEndY);
+        const x2 = Math.max(roiStartX, roiEndX);
+        const y2 = Math.max(roiStartY, roiEndY);
+        drawROIRect(x1, y1, x2, y2);
+      });
+
+      roiCanvas.addEventListener('mouseup', (e) => {
+        if (!isDrawing) return;
+        isDrawing = false;
+        const rect = roiCanvas.getBoundingClientRect();
+        roiEndX = Math.max(0, Math.min(e.clientX - rect.left, roiCanvas.width));
+        roiEndY = Math.max(0, Math.min(e.clientY - rect.top, roiCanvas.height));
+
+        const cx1 = Math.min(roiStartX, roiEndX);
+        const cy1 = Math.min(roiStartY, roiEndY);
+        const cx2 = Math.max(roiStartX, roiEndX);
+        const cy2 = Math.max(roiStartY, roiEndY);
+
+        // Minimum size check
+        if (cx2 - cx1 < 10 || cy2 - cy1 < 10) {
+          hasROI = false;
+          roiCoords.style.display = 'none';
+          roiInstructions.style.display = '';
+          clearCanvasOverlay();
+          return;
+        }
+
+        hasROI = true;
+        roiInstructions.style.display = 'none';
+
+        const nat1 = canvasToNatural(cx1, cy1);
+        const nat2 = canvasToNatural(cx2, cy2);
+
+        roiCoords.style.display = 'block';
+        roiCoords.innerHTML = `
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <strong>ROI Vector Data:</strong>
+              <span class="roi-size" style="color:var(--accent); font-size:0.8rem;">${nat2.x - nat1.x} × ${nat2.y - nat1.y}</span>
+            </div>
+            <div style="display:flex; gap:10px;">
+              <input type="number" id="roiEditX1" value="${nat1.x}" style="width:60px; background:#1a2235; border:1px solid #2a3449; color:white; border-radius:4px; padding:2px;">
+              <input type="number" id="roiEditY1" value="${nat1.y}" style="width:60px; background:#1a2235; border:1px solid #2a3449; color:white; border-radius:4px; padding:2px;">
+              <span style="color:#8a9bb8;">→</span>
+              <input type="number" id="roiEditX2" value="${nat2.x}" style="width:60px; background:#1a2235; border:1px solid #2a3449; color:white; border-radius:4px; padding:2px;">
+              <input type="number" id="roiEditY2" value="${nat2.y}" style="width:60px; background:#1a2235; border:1px solid #2a3449; color:white; border-radius:4px; padding:2px;">
+            </div>
+            <button id="roiUpdateBtn" type="button" style="background:#2a3449; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:0.8rem; cursor:pointer; align-self:flex-end;">Redraw Geometry</button>
+          </div>
+        `;
+
+        document.getElementById('roiUpdateBtn').addEventListener('click', () => {
+          let nx1 = parseInt(document.getElementById('roiEditX1').value) || 0;
+          let ny1 = parseInt(document.getElementById('roiEditY1').value) || 0;
+          let nx2 = parseInt(document.getElementById('roiEditX2').value) || 0;
+          let ny2 = parseInt(document.getElementById('roiEditY2').value) || 0;
+          
+          const scaleX = roiCanvas.width / naturalW;
+          const scaleY = roiCanvas.height / naturalH;
+          
+          let kx1 = Math.round(nx1 * scaleX);
+          let ky1 = Math.round(ny1 * scaleY);
+          let kx2 = Math.round(nx2 * scaleX);
+          let ky2 = Math.round(ny2 * scaleY);
+          
+          roiStartX = kx1; roiStartY = ky1; roiEndX = kx2; roiEndY = ky2;
+          drawROIRect(kx1, ky1, kx2, ky2);
+        });
+
+        drawROIRect(cx1, cy1, cx2, cy2);
+      });
+
+      // Touch support for mobile
+      roiCanvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const rect = roiCanvas.getBoundingClientRect();
+        roiStartX = touch.clientX - rect.left;
+        roiStartY = touch.clientY - rect.top;
+        isDrawing = true;
+      });
+      roiCanvas.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        if (!isDrawing) return;
+        const touch = e.touches[0];
+        const rect = roiCanvas.getBoundingClientRect();
+        roiEndX = Math.max(0, Math.min(touch.clientX - rect.left, roiCanvas.width));
+        roiEndY = Math.max(0, Math.min(touch.clientY - rect.top, roiCanvas.height));
+        const x1 = Math.min(roiStartX, roiEndX);
+        const y1 = Math.min(roiStartY, roiEndY);
+        const x2 = Math.max(roiStartX, roiEndX);
+        const y2 = Math.max(roiStartY, roiEndY);
+        drawROIRect(x1, y1, x2, y2);
+      });
+      roiCanvas.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        roiCanvas.dispatchEvent(new MouseEvent('mouseup', { clientX: roiEndX, clientY: roiEndY }));
+      });
+
+      /* ── Browse click ──────────────────────────────────────── */
+      browseLink.addEventListener('click', (e) => { e.stopPropagation(); fileInput.click(); });
+      dropZone.addEventListener('click', () => fileInput.click());
+
+      fileInput.addEventListener('change', () => {
+        if (fileInput.files.length > 0) setPreview(fileInput.files[0]);
+      });
+
+      /* ── Drag & Drop ───────────────────────────────────────── */
+      ['dragenter', 'dragover'].forEach(evt =>
+        dropZone.addEventListener(evt, (e) => {
+          e.preventDefault();
+          dropZone.classList.add('drag-over');
+        })
+      );
+      ['dragleave', 'drop'].forEach(evt =>
+        dropZone.addEventListener(evt, () => dropZone.classList.remove('drag-over'))
+      );
+
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+          if (!files[0].type.startsWith('image/')) {
+            showError('Please drop an image file (PNG, JPG, WEBP, etc.).');
+            return;
+          }
+          setPreview(files[0]);
+        }
+      });
+
+      /* ── Remove button ─────────────────────────────────────── */
+      removeBtn.addEventListener('click', resetUI);
+
+      /* ── Render individual model results ────────────────────── */
+      function renderIndividualResults(results) {
+        if (!results || Object.keys(results).length === 0) {
+          individualResults.style.display = 'none';
+          return;
+        }
+
+        individualResults.style.display = 'block';
+        individualList.innerHTML = '';
+
+        for (const [name, r] of Object.entries(results)) {
+          const isAI = r.label === 'AI Generated';
+          const labelClass = isAI ? 'ai' : 'real';
+          const fillClass = isAI ? 'ai' : 'real';
+
+          const row = document.createElement('div');
+          row.className = 'model-result-row';
+          row.innerHTML = `
+            <div class="model-icon">${r.icon || '🤖'}</div>
+            <div class="model-info">
+              <div class="model-name">${r.display_name || name}</div>
+              <div class="model-label ${labelClass}">${r.label}</div>
+            </div>
+            <div class="model-conf">${r.confidence}%</div>
+            <div class="mini-bar">
+              <div class="mini-fill ${fillClass}" style="width: ${r.confidence}%"></div>
+            </div>
+          `;
+          individualList.appendChild(row);
+        }
+      }
+
+      /* ── Render FFT analysis ────────────────────────────────── */
+      function renderFFTAnalysis(fft, target = 'standard') {
+        const card = target === 'combined' ? combinedFftCard : fftCard;
+        const metrics = target === 'combined' ? combinedFftMetrics : fftMetrics;
+        const img = target === 'combined' ? combinedFftImg : fftImg;
+        const summary = target === 'combined' ? combinedFftSummary : fftSummary;
+
+        if (!fft || fft.error) {
+          card.style.display = 'none';
+          return;
+        }
+
+        card.style.display = 'block';
+
+        metrics.innerHTML = `
+          <div class="fft-metric">
+            <div class="metric-value">${(fft.high_freq_ratio * 100).toFixed(1)}%</div>
+            <div class="metric-label">High Freq Ratio</div>
+          </div>
+          <div class="fft-metric">
+            <div class="metric-value">${fft.spectral_centroid.toFixed(1)}</div>
+            <div class="metric-label">Spectral Centroid</div>
+          </div>
+          <div class="fft-metric">
+            <div class="metric-value">${fft.noise_variance.toFixed(1)}</div>
+            <div class="metric-label">Noise Variance</div>
+          </div>
+        `;
+
+        if (fft.spectrum_url) {
+          img.src = fft.spectrum_url;
+          img.style.display = 'block';
+        } else {
+          img.style.display = 'none';
+        }
+
+        summary.textContent = fft.analysis_summary || '';
+      }
+
+      /* ── Render explanation card ───────────────────────────────── */
+      function renderExplanation(explanation, label) {
+        if (!explanation) {
+          explanationCard.style.display = 'none';
+          return;
+        }
+
+        explanationCard.style.display = 'block';
+        const isAI = label === 'AI Generated';
+        const cls = isAI ? 'ai' : 'real';
+
+        // Confidence distribution bar
+        const dist = explanation.confidence_distribution || {};
+        const realPct = ((dist.real || 0.5) * 100).toFixed(1);
+        const aiPct = ((dist.ai || 0.5) * 100).toFixed(1);
+        distFillReal.style.width = realPct + '%';
+        distFillReal.textContent = realPct + '%';
+        distFillAi.style.width = aiPct + '%';
+        distFillAi.textContent = aiPct + '%';
+
+        // Explanation text
+        explanationText.textContent = explanation.text || '';
+        explanationText.className = 'explanation-text ' + cls;
+
+        // Pattern indicators
+        patternIndicators.innerHTML = '';
+        if (explanation.pattern_indicators) {
+          explanation.pattern_indicators.forEach(function(ind) {
+            var pct = (ind.score * 100).toFixed(0);
+            var fillClass = ind.score > 0.6 ? 'high' : ind.score > 0.3 ? 'mid' : 'low';
+            var card = document.createElement('div');
+            card.className = 'pattern-card';
+            card.innerHTML =
+              '<div class="pattern-card-header">' +
+                '<span class="pattern-icon">' + ind.icon + '</span>' +
+                '<span class="pattern-name">' + ind.name + '</span>' +
+              '</div>' +
+              '<div class="pattern-score-bar">' +
+                '<div class="pattern-score-fill ' + fillClass + '" style="width:' + pct + '%"></div>' +
+              '</div>' +
+              '<div class="pattern-interpretation">' + ind.interpretation + '</div>' +
+              '<div class="pattern-detail">' + (ind.detail || '') + '</div>';
+            patternIndicators.appendChild(card);
+          });
+        }
+
+        // Key factors
+        keyFactors.innerHTML = '';
+        if (explanation.key_factors) {
+          explanation.key_factors.forEach(function(factor) {
+            var badge = document.createElement('span');
+            badge.className = 'factor-badge ' + cls;
+            badge.textContent = factor;
+            keyFactors.appendChild(badge);
+          });
+        }
+
+        // Verdict reasoning
+        verdictReasoning.textContent = explanation.verdict_reasoning || '';
+        verdictReasoning.className = 'verdict-reasoning ' + cls;
+      }
+
+      /* ── Render combined results ─────────────────────────────── */
+      function renderCombinedResults(data) {
+        // Stats
+        statTotal.textContent = data.total_objects;
+        statReal.textContent = data.real_count;
+        statAI.textContent = data.ai_count;
+
+        // Summary
+        combinedSummary.textContent = data.summary;
+        const isAI = data.ai_count >= data.real_count && data.ai_count > 0;
+        combinedSummary.className = 'combined-summary ' + (isAI ? 'ai' : 'real');
+
+        // Model badge
+        combinedModelBadge.textContent = `COMBINED (${data.classifier_used.toUpperCase()}) + YOLOv8`;
+
+        // Images
+        annotatedImg.src = data.annotated_image_url;
+        combinedOriginalImg.src = data.original_image_url;
+
+        // Regions table
+        if (data.regions && data.regions.length > 0) {
+          regionsCard.style.display = 'block';
+          regionsBody.innerHTML = '';
+
+          data.regions.forEach((region, i) => {
+            const isRegionAI = region.classification === 'AI Generated';
+            const cls = isRegionAI ? 'ai' : 'real';
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${i + 1}</td>
+              <td><span class="object-badge">${region.object_class}</span></td>
+              <td>${(region.yolo_confidence * 100).toFixed(1)}%</td>
+              <td><span class="classification-tag ${cls}">${region.classification}</span></td>
+              <td><strong>${region.classification_confidence}%</strong></td>
+              <td>${region.has_gradcam ? '✅' : '❌'}</td>
+            `;
+            regionsBody.appendChild(row);
+          });
+        } else {
+          regionsCard.style.display = 'none';
+        }
+
+        // FFT for combined
+        renderFFTAnalysis(data.fft_analysis, 'combined');
+
+        // Show combined section
+        combinedResultsSection.classList.add('show');
+      }
+
+      /* ── Render similarity results (advanced) ──────────────────── */
+      function renderSimilarityResults(data) {
+        // Store for view toggle
+        lastAdvancedData = data;
+
+        // Stats header
+        simStatDetected.textContent = data.total_detected;
+        simStatMatches.textContent = data.match_count;
+        simStatThreshold.textContent = data.threshold_info
+          ? `${(data.threshold_info.threshold * 100).toFixed(0)}%`
+          : (data.threshold ? (data.threshold * 100).toFixed(0) + '%' : '—');
+
+        // Clusters stat
+        const nClusters = data.clustering ? data.clustering.n_clusters : 0;
+        simStatClusters.textContent = nClusters;
+
+        // Badge
+        const src = data.embedding_source || 'efficientnet';
+        const detector = data.detector_model || 'yolo';
+        const method = data.threshold_info ? ` • ${data.threshold_info.method.toUpperCase()}` : '';
+        simModelBadge.textContent = `SIMILARITY SEARCH (${src.toUpperCase()} + ${detector.toUpperCase()}${method})`;
+
+        // Primary image (based on current view mode)
+        if (data.cluster_image_url && currentViewMode === 'clustering') {
+          simAnnotatedImg.src = data.cluster_image_url;
+          simVizLabel.textContent = 'Cluster View';
+        } else {
+          simAnnotatedImg.src = data.annotated_image_url;
+          simVizLabel.textContent = 'Similarity View';
+        }
+        
+        const simDownloadBtn = document.getElementById('simDownloadBtn');
+        if (simDownloadBtn) {
+          simDownloadBtn.href = simAnnotatedImg.src;
+        }
+        simOriginalImg.src = data.original_image_url;
+
+        // ── Cluster Legend ───────────────────────────────────────
+        if (data.clustering && data.clustering.cluster_colors && nClusters > 0) {
+          clusterLegend.style.display = 'block';
+          legendItems.innerHTML = '';
+
+          const roiCid = data.clustering.roi_cluster_id;
+          const colors = data.clustering.cluster_colors;
+          const summary = data.clustering.cluster_summary || {};
+
+          for (const [cid, hexColor] of Object.entries(colors)) {
+            const cidInt = parseInt(cid);
+            const count = summary[cid] || 0;
+            const isRoi = cidInt === roiCid;
+            const labelText = cidInt === -1
+              ? `Noise (${count})`
+              : `Cluster ${cidInt} (${count})${isRoi ? ' ← ROI' : ''}`;
+
+            const item = document.createElement('div');
+            item.className = 'legend-item' + (isRoi ? ' roi-cluster' : '');
+            item.innerHTML = `
+              <span class="legend-swatch" style="background:${hexColor}"></span>
+              ${labelText}
+            `;
+            legendItems.appendChild(item);
+          }
+        } else {
+          clusterLegend.style.display = 'none';
+        }
+
+        // ── Cluster Summary Card ─────────────────────────────────
+        if (data.clustering && data.clustering.cluster_summary && nClusters > 0) {
+          clusterSummaryCard.style.display = 'block';
+          clusterCounts.innerHTML = '';
+
+          const roiCid = data.clustering.roi_cluster_id;
+          const summary = data.clustering.cluster_summary;
+          const colors = data.clustering.cluster_colors || {};
+
+          for (const [cid, count] of Object.entries(summary)) {
+            const cidInt = parseInt(cid);
+            const isRoi = cidInt === roiCid;
+            const color = colors[cid] || '#787878';
+            const label = cidInt === -1 ? 'Noise' : `Cluster ${cidInt}`;
+
+            const item = document.createElement('div');
+            item.className = 'cluster-count-item' + (isRoi ? ' roi-cluster' : '');
+            item.innerHTML = `
+              <span class="count-swatch" style="background:${color}"></span>
+              <span class="count-label">${label}${isRoi ? ' (ROI)' : ''}</span>
+              <span class="count-value">${count}</span>
+            `;
+            clusterCounts.appendChild(item);
+          }
+        } else {
+          clusterSummaryCard.style.display = 'none';
+        }
+
+        // ── Match Table (with Cluster column) ────────────────────
+        if (data.matches && data.matches.length > 0) {
+          simMatchesCard.style.display = 'block';
+          simMatchesBody.innerHTML = '';
+
+          const colors = (data.clustering && data.clustering.cluster_colors) || {};
+
+          data.matches.forEach((match, i) => {
+            const simPct = (match.similarity * 100).toFixed(1);
+            const barColor = match.similarity > 0.85 ? 'var(--success)' :
+                             match.similarity > 0.7 ? 'var(--warning)' : 'var(--accent-light)';
+            const cid = match.cluster_id !== undefined ? match.cluster_id : '—';
+            const cidColor = colors[String(cid)] || '#787878';
+            const cidLabel = cid === -1 ? 'Noise' : `C${cid}`;
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${i + 1}</td>
+              <td><span class="object-badge">${match.class_name}</span></td>
+              <td>
+                <span style="display:inline-flex;align-items:center;gap:4px">
+                  <span style="width:8px;height:8px;border-radius:2px;background:${cidColor};display:inline-block"></span>
+                  ${cidLabel}
+                </span>
+              </td>
+              <td>${(match.confidence * 100).toFixed(1)}%</td>
+              <td><strong class="sim-score">${simPct}%</strong></td>
+              <td>
+                <div class="mini-bar" style="width:100px">
+                  <div class="mini-fill" style="width:${simPct}%; background:${barColor}"></div>
+                </div>
+              </td>
+            `;
+            simMatchesBody.appendChild(row);
+          });
+        } else {
+          simMatchesCard.style.display = 'none';
+        }
+
+        // ── Processing Time ──────────────────────────────────────
+        if (data.processing_time_ms) {
+          simProcessingTime.textContent = `⏱ Processed in ${data.processing_time_ms}ms`;
+        }
+
+        similarResultsSection.classList.add('show');
+      }
+
+      /* ── Render patch analysis results ──────────────────────── */
+      function renderPatchResults(data) {
+        patchStatCount.textContent = data.patch_count || 0;
+        patchStatScore.textContent = (data.overall_score * 100).toFixed(1) + '%';
+        patchStatArtifacts.textContent = data.artifact_regions ? data.artifact_regions.length : 0;
+
+        patchModelBadge.textContent = `PATCH ANALYSIS (${(data.classifier_used || 'EfficientNet').toUpperCase()}) • ${data.grid_size ? data.grid_size[0] + '×' + data.grid_size[1] : ''} grid`;
+
+        // Summary
+        const isAI = data.overall_score > 0.5;
+        patchSummary.textContent = data.summary || '';
+        patchSummary.className = 'patch-summary ' + (isAI ? 'ai' : 'real');
+
+        // Heatmap image
+        if (data.heatmap_url) {
+          patchHeatmapImg.src = data.heatmap_url;
+        }
+
+        // Artifact regions table
+        if (data.artifact_regions && data.artifact_regions.length > 0) {
+          patchArtifactsCard.style.display = 'block';
+          patchArtifactsBody.innerHTML = '';
+
+          data.artifact_regions.forEach((region, i) => {
+            const pct = (region.ai_probability * 100).toFixed(1);
+            const barColor = region.ai_probability > 0.8 ? 'var(--danger)' :
+                             region.ai_probability > 0.65 ? 'var(--warning)' : 'var(--accent-light)';
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${i + 1}</td>
+              <td>R${region.patch_row} C${region.patch_col}</td>
+              <td>[${region.bbox.join(', ')}]</td>
+              <td><strong style="color:${barColor}">${pct}%</strong></td>
+              <td>
+                <div class="mini-bar" style="width:100px">
+                  <div class="mini-fill" style="width:${pct}%; background:${barColor}"></div>
+                </div>
+              </td>
+            `;
+            patchArtifactsBody.appendChild(row);
+          });
+        } else {
+          patchArtifactsCard.style.display = 'none';
+        }
+
+        // Processing time
+        if (data.processing_time_ms) {
+          patchProcessingTime.textContent = `⏱ Processed in ${data.processing_time_ms}ms`;
+        }
+
+        patchResultsSection.classList.add('show');
+      }
+
+      /* ── Add to history ─────────────────────────────────────── */
+      function addToHistory(data) {
+        const entry = {
+          label: data.label || (data.mode === 'similar'
+            ? `${data.match_count} matches`
+            : (data.ai_count >= data.real_count && data.ai_count > 0 ? 'AI Generated' : 'Real Image')),
+          confidence: data.confidence || (data.mode === 'similar'
+            ? data.match_count
+            : (data.total_objects ? Math.round(Math.max(data.ai_count, data.real_count) / data.total_objects * 100) : 0)),
+          model: data.model_used || (data.mode === 'similar'
+            ? 'SIMILARITY'
+            : `COMBINED (${(data.classifier_used || '').toUpperCase()})`),
+          imageUrl: data.image_url || data.original_image_url,
+          timestamp: new Date().toLocaleTimeString(),
+        };
+        history.unshift(entry);
+        if (history.length > 50) history.pop();
+        renderHistory();
+      }
+
+      function renderHistory() {
+        if (history.length === 0) {
+          historyList.innerHTML = `
+            <div class="history-empty">
+              <span class="empty-icon">📭</span>
+              No predictions yet.<br>Upload an image to get started!
+            </div>
+          `;
+          return;
+        }
+
+        historyList.innerHTML = '';
+        history.forEach((entry) => {
+          const isAI = entry.label === 'AI Generated';
+          const item = document.createElement('div');
+          item.className = 'history-item';
+          item.innerHTML = `
+            <img class="thumb" src="${entry.imageUrl}" alt="thumb" />
+            <div class="hist-info">
+              <div class="hist-label ${isAI ? 'ai' : 'real'}">${entry.label}</div>
+              <div class="hist-meta">${entry.model} • ${entry.timestamp}</div>
+            </div>
+            <div class="hist-conf">${entry.confidence}%</div>
+          `;
+          historyList.appendChild(item);
+        });
+      }
+
+      /* ── Check button (upload + predict) ────────────────────── */
+      checkBtn.addEventListener('click', async () => {
+        if (!selectedFile) return;
+        hideError();
+        hideAllResults();
+
+        const selectedMode = document.querySelector('input[name="model"]:checked').value;
+        const isSimilar = selectedMode === 'similar';
+        const isExplain = selectedMode === 'explain';
+
+        // Validate ROI for similar mode
+        if (isSimilar && !hasROI) {
+          showError('Please draw a region of interest (ROI) on the image first.');
+          return;
+        }
+
+        // Show spinner
+        checkBtn.disabled = true;
+        checkBtn.innerHTML = '<span class="spinner"></span> Analyzing…';
+
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+
+        let endpoint;
+
+        if (isSimilar) {
+          // Get natural ROI coordinates
+          const cx1 = Math.min(roiStartX, roiEndX);
+          const cy1 = Math.min(roiStartY, roiEndY);
+          const cx2 = Math.max(roiStartX, roiEndX);
+          const cy2 = Math.max(roiStartY, roiEndY);
+
+          const nat1 = canvasToNatural(cx1, cy1);
+          const nat2 = canvasToNatural(cx2, cy2);
+
+          formData.append('x1', nat1.x);
+          formData.append('y1', nat1.y);
+          formData.append('x2', nat2.x);
+          formData.append('y2', nat2.y);
+
+          // Use UI params instead of hardcoded values for dynamic tuning
+          formData.append('threshold_method', thresholdMethod.value || 'statistical');
+          formData.append('top_k', '10'); // keep top_k default, can be added to UI if needed
+          formData.append('eps', epsSlider.value || '0.55');
+          formData.append('view_mode', currentViewMode || 'clustering');
+          formData.append('multiplier', '0.5'); // keep default
+          formData.append('percentile', '90'); // keep default
+          formData.append('min_samples', '2'); // keep default
+
+          endpoint = '/predict/similar_advanced';
+        } else {
+          // Both "detect" and "explain" use ensemble
+          formData.append('model', 'ensemble');
+          endpoint = '/predict';
+        }
+
+        try {
+          const resp = await fetch(endpoint, { method: 'POST', body: formData });
+          const data = await resp.json();
+
+          if (!resp.ok) {
+            showError(data.error || 'Server error.');
+            return;
+          }
+
+          if (isSimilar || data.mode === 'similar' || data.mode === 'similar_advanced') {
+            // ── Similarity mode results ──────────────────────────
+            renderSimilarityResults(data);
+            addToHistory(data);
+
+          } else {
+            // ── Detect / Explain mode results ────────────────────
+            const isAI = data.label === 'AI Generated';
+            resultHeader.className = 'result-header ' + (isAI ? 'ai' : 'real');
+
+            resultLabel.textContent = data.label;
+            resultLabel.className = 'result-label ' + (isAI ? 'ai' : 'real');
+
+            resultConf.innerHTML = `Confidence: <strong>${data.confidence}%</strong>`;
+            resultModel.textContent = `Model: ${data.model_used}`;
+
+            // Animate gauge
+            const pct = data.confidence;
+            confidenceGauge.style.setProperty('--gauge-pct', pct);
+            if (isAI) {
+              confidenceGauge.style.background = `conic-gradient(var(--danger) ${pct}%, rgba(255,255,255,0.06) 0)`;
+            } else {
+              confidenceGauge.style.background = `conic-gradient(var(--success) ${pct}%, rgba(255,255,255,0.06) 0)`;
+            }
+            gaugeValue.textContent = `${pct}%`;
+
+            // Individual results (ensemble)
+            if (data.individual_results) {
+              renderIndividualResults(data.individual_results);
+            } else {
+              individualResults.style.display = 'none';
+            }
+
+            // Explanation card
+            if (isExplain) {
+              renderExplanation(data.explanation, data.label);
+
+              // Grad-CAM visualization
+              if (data.gradcam_url) {
+                gradcamCard.style.display = 'block';
+                gradcamImg.src = data.gradcam_url;
+                originalCard.style.display = 'block';
+                originalImg.src = data.image_url;
+              } else {
+                gradcamCard.style.display = 'none';
+                originalCard.style.display = 'none';
+              }
+
+              // FFT analysis
+              renderFFTAnalysis(data.fft_analysis, 'standard');
+            } else {
+              explanationCard.style.display = 'none';
+              gradcamCard.style.display = 'none';
+              originalCard.style.display = 'none';
+              fftCard.style.display = 'none';
+            }
+
+            // Show results section
+            resultsSection.classList.add('show');
+
+            // Add to history
+            addToHistory(data);
+
+            // Auto-scroll to explanation if "Explain" mode
+            if (isExplain) {
+              setTimeout(() => {
+                const explCard = document.getElementById('explanationCard');
+                if (explCard) explCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }, 300);
+            }
+          }
+
+        } catch (err) {
+          showError('Could not reach the server. Is Flask running?');
+        } finally {
+          checkBtn.disabled = false;
+          checkBtn.textContent = '🔍 Analyze Image';
+        }
+      });
+
+      /* ── Prevent default drag on window ─────────────────────── */
+      ['dragover', 'drop'].forEach(evt =>
+        window.addEventListener(evt, (e) => e.preventDefault())
+      );
+    })();
+  </script>
+
+</body>
+</html>

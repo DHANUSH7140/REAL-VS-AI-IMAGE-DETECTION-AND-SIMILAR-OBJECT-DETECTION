@@ -1,0 +1,41 @@
+# Virtual environment
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Model weights (too large for git)
+*.h5
+*.pt
+*.onnx
+*.pkl
+
+# Dataset (too large for git)
+dataset/
+dataset_v2/
+
+# Uploads and generated files
+real-vs-ai-detector/static/uploads/
+real-vs-ai-detector/static/gradcam/
+real-vs-ai-detector/static/fft/
+real-vs-ai-detector/static/similarity/
+real-vs-ai-detector/static/patches/
+real-vs-ai-detector/static/evaluation/
+real-vs-ai-detector/logs/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Archive
+*.zip
+
+# Environment
+.env
