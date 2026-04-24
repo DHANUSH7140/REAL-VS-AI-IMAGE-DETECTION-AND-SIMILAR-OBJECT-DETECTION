@@ -1,18 +1,29 @@
 import subprocess
 
 try:
-    with open("git_push_log.txt", "w") as f:
-        print("Adding files...")
-        subprocess.run(["git", "add", "."], check=False, stdout=f, stderr=subprocess.STDOUT)
-        
-        print("Committing...")
-        subprocess.run(["git", "commit", "-am", "Finalize unified router, add history dashboard, include dataset"], check=False, stdout=f, stderr=subprocess.STDOUT)
+    print("Committing unstaged changes...")
+    subprocess.run(["git", "commit", "-am", "Auto-commit before pull"], capture_output=True)
 
-        print("Pulling from remote...")
-        subprocess.run(["git", "pull", "--rebase", "--autostash"], check=True, stdout=f, stderr=subprocess.STDOUT)
-        
-        print("Pushing to remote...")
-        subprocess.run(["git", "push"], check=True, stdout=f, stderr=subprocess.STDOUT)
+    print("Pulling from remote...")
+    result_pull = subprocess.run(
+        ["git", "pull", "--rebase"], 
+        capture_output=True, 
+        text=True,
+        check=True
+    )
+    print("Pull stdout:", result_pull.stdout)
+    
+    print("Pushing to remote...")
+    result_push = subprocess.run(
+        ["git", "push"], 
+        capture_output=True, 
+        text=True,
+        check=True
+    )
+    print("Push stdout:", result_push.stdout)
     print("Push succeeded")
+    
 except subprocess.CalledProcessError as e:
-    print(f"Push failed with exit code {e.returncode}")
+    print(f"Command failed with exit code {e.returncode}")
+    print("STDOUT:", e.stdout)
+    print("STDERR:", e.stderr)
