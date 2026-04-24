@@ -106,6 +106,7 @@ if __name__ == '__main__':
     start_app(AI_APP_DIR, AI_PORT)
     start_app(SIMILAR_APP_DIR, SIMILAR_PORT)
     
-    print("Starting Main Router on port 8500...")
-    # Run the main router on port 8500
-    app.run(host='0.0.0.0', port=8500, debug=False, use_reloader=False)
+    print("Starting Main Router...")
+    # Run the main router
+    port = int(os.environ.get("PORT", 8500))
+    app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
