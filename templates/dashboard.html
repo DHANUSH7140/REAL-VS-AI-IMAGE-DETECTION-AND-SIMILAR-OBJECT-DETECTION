@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - AI Vision System</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .iframe-container {
+      width: 100%;
+      height: 80vh;
+      border: 1px solid var(--border-blue);
+      border-radius: var(--radius-lg);
+      margin-top: 20px;
+      overflow: hidden;
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar">
+    <div class="brand">
+      <div class="brand-text">AI VISION</div>
+    </div>
+    <nav>
+      <a href="#" id="nav-home" class="active" onclick="showHome()">Home</a>
+      <a href="#" id="nav-ai" onclick="showApp('ai')">Real vs AI Detection</a>
+      <a href="#" id="nav-similar" onclick="showApp('similar')">Similar Object Detection</a>
+      <a href="/logout" class="danger">Logout ({{ username }})</a>
+    </nav>
+  </nav>
+
+  <!-- HOME SECTION -->
+  <div id="home-section">
+    <section class="hero" style="min-height: 80vh; padding-top: 150px;">
+      <div class="hero-content" style="max-width: 900px; margin: 0 auto; text-align: center;">
+        <h1>AI VISION SYSTEM</h1>
+        <p style="font-size: 1.5rem; margin-bottom: 40px;">Welcome, {{ username }}. Select a detection module below to proceed.</p>
+        
+        <div class="features-grid">
+            <div class="feature-card" style="cursor: pointer;" onclick="showApp('ai')">
+                <span class="feature-icon">🖼️</span>
+                <h3>Real vs AI Detection</h3>
+                <p>Upload any image and determine whether it was created by AI or captured by a real camera.</p>
+            </div>
+            <div class="feature-card" style="cursor: pointer;" onclick="showApp('similar')">
+                <span class="feature-icon">🎯</span>
+                <h3>Similar Object Detection</h3>
+                <p>Find all similar objects in an image using AI-powered detection with self-learning.</p>
+            </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- IFRAME SECTION -->
+  <div id="iframe-section" class="hidden" style="padding: 100px 40px 40px;">
+    <div class="iframe-container">
+      <iframe id="app-iframe" src=""></iframe>
+    </div>
+  </div>
+
+  <script>
+    function showHome() {
+      document.getElementById('home-section').classList.remove('hidden');
+      document.getElementById('iframe-section').classList.add('hidden');
+      document.getElementById('nav-home').classList.add('active');
+      document.getElementById('nav-ai').classList.remove('active');
+      document.getElementById('nav-similar').classList.remove('active');
+    }
+
+    function showApp(appId) {
+      document.getElementById('home-section').classList.add('hidden');
+      document.getElementById('iframe-section').classList.remove('hidden');
+      
+      document.getElementById('nav-home').classList.remove('active');
+      document.getElementById('nav-ai').classList.remove('active');
+      document.getElementById('nav-similar').classList.remove('active');
+      
+      document.getElementById('nav-' + appId).classList.add('active');
+      
+      const iframe = document.getElementById('app-iframe');
+      if (appId === 'ai') {
+        iframe.src = 'http://127.0.0.1:5003';
+      } else if (appId === 'similar') {
+        iframe.src = 'http://127.0.0.1:5004';
+      }
+    }
+  </script>
+</body>
+</html>

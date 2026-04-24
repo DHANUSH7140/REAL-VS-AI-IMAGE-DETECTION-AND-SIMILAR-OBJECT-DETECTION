@@ -1,0 +1,26 @@
+version: '3.9'
+services:
+  visionprobe:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./weights:/app/weights
+      - ~/.cache/huggingface:/root/.cache/huggingface
+    environment:
+      - DEVICE=auto
+      - HF_HUB_OFFLINE=0
+      - PYTHONUNBUFFERED=1
+    deploy:
+      resources:
+        limits:
+          memory: 12G
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s

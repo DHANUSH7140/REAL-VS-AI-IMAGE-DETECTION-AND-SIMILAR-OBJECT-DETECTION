@@ -1,0 +1,105 @@
+{
+  "timestamp": "2026-04-24T20:43:37.219214",
+  "pipeline": "multi-branch-xgboost",
+  "architecture": {
+    "branches": [
+      {
+        "name": "CLIP ViT-L/14",
+        "dim": 768,
+        "pca_dim": 128,
+        "frozen": true
+      },
+      {
+        "name": "EfficientNetV2-L",
+        "dim": 1280,
+        "pca_dim": 128,
+        "frozen": true
+      },
+      {
+        "name": "FFT frequency",
+        "dim": 8,
+        "pca_dim": null,
+        "frozen": true
+      },
+      {
+        "name": "SRM noise",
+        "dim": 15,
+        "pca_dim": null,
+        "frozen": true
+      }
+    ],
+    "total_features_before_pca": 2071,
+    "total_features_after_pca": 279,
+    "classifier": "XGBoost",
+    "calibration": "isotonic"
+  },
+  "dataset": {
+    "samples_per_class": 1000,
+    "total_images": 2000,
+    "split": "70/15/15 (train/val/test)",
+    "augmentation": "Real images only (flip, color jitter, gaussian noise)"
+  },
+  "results": {
+    "train": {
+      "accuracy": 1.0,
+      "auc_roc": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "confusion_matrix": [
+        [
+          1400,
+          0
+        ],
+        [
+          0,
+          1400
+        ]
+      ],
+      "classification_report": "              precision    recall  f1-score   support\n\n        REAL       1.00      1.00      1.00      1400\n          AI       1.00      1.00      1.00      1400\n\n    accuracy                           1.00      2800\n   macro avg       1.00      1.00      1.00      2800\nweighted avg       1.00      1.00      1.00      2800\n"
+    },
+    "validation": {
+      "accuracy": 0.9933,
+      "auc_roc": 0.9998,
+      "precision": 0.9901,
+      "recall": 0.9967,
+      "f1": 0.9934,
+      "confusion_matrix": [
+        [
+          297,
+          3
+        ],
+        [
+          1,
+          299
+        ]
+      ],
+      "classification_report": "              precision    recall  f1-score   support\n\n        REAL       1.00      0.99      0.99       300\n          AI       0.99      1.00      0.99       300\n\n    accuracy                           0.99       600\n   macro avg       0.99      0.99      0.99       600\nweighted avg       0.99      0.99      0.99       600\n"
+    },
+    "test": {
+      "accuracy": 0.9717,
+      "auc_roc": 0.9945,
+      "precision": 0.9829,
+      "recall": 0.96,
+      "f1": 0.9713,
+      "confusion_matrix": [
+        [
+          295,
+          5
+        ],
+        [
+          12,
+          288
+        ]
+      ],
+      "classification_report": "              precision    recall  f1-score   support\n\n        REAL       0.96      0.98      0.97       300\n          AI       0.98      0.96      0.97       300\n\n    accuracy                           0.97       600\n   macro avg       0.97      0.97      0.97       600\nweighted avg       0.97      0.97      0.97       600\n"
+    },
+    "overfitting_gap": 0.0067
+  },
+  "xgboost_params": {
+    "n_estimators": 200,
+    "max_depth": 6,
+    "learning_rate": 0.1,
+    "subsample": 0.8
+  }
+}

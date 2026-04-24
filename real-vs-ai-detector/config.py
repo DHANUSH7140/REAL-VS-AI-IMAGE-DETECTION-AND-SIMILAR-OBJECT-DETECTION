@@ -59,18 +59,6 @@ ENSEMBLE_WEIGHTS = {
     "fft": 0.15,
 }
 
-# ──────────────────────────── SIMILARITY ────────────────────────
-DEFAULT_SIMILARITY_THRESHOLD = 0.75
-DETECTOR_MODEL = "rtdetr"           # 'yolo' or 'rtdetr'
-FEATURE_BACKBONE = "vector"         # 'vit', 'efficientnet', 'mobilenetv3', 'fused', or 'vector'
-
-# ──────────────────────────── FEATURE FLAGS ─────────────────────
-ENABLE_VIT = True                  # Use ViT for similarity embeddings
-ENABLE_RFDETR = True               # Use RF-DETR (optional, graceful fallback)
-ENABLE_FAISS = True                # Use FAISS for fast similarity search
-ENABLE_ONNX = False                # Use ONNX runtime (set True after conversion)
-EAGER_LOAD_MODELS = False          # Load all models at startup
-
 # ──────────────────────────── PATCH ANALYSIS ────────────────────
 PATCH_SIZE = 128                   # Default patch size for grid analysis
 PATCH_STRIDE = None                # None = same as patch_size (no overlap)

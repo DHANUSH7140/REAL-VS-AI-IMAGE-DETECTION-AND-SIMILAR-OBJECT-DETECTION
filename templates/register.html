@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - AI Vision System</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="logo">AI VISION</div>
+      <p class="subtitle">Create Your Account</p>
+
+      <h2>REGISTER</h2>
+
+      {% if error %}
+      <div style="background: rgba(255, 10, 60, 0.1); border: 1px solid rgba(255, 10, 60, 0.3);
+                  color: #ff0a3c; padding: 12px; margin-bottom: 15px; font-size: 0.95rem;">
+        {{ error }}
+      </div>
+      {% endif %}
+
+      <form method="POST" action="/register">
+        <div class="form-group">
+          <input type="text" name="username" placeholder="CHOOSE USERNAME" required>
+        </div>
+        <div class="form-group">
+          <input type="password" name="password" placeholder="SET PASSWORD" required>
+        </div>
+        <div class="form-group">
+          <input type="password" name="password_confirm" placeholder="CONFIRM PASSWORD" required>
+        </div>
+        <button type="submit" class="btn-primary" style="width:100%;">CREATE ACCOUNT</button>
+      </form>
+
+      <p class="text-muted mt-20">
+        Already registered? <a href="/login">Login</a>
+      </p>
+    </div>
+  </div>
+
+</body>
+
+</html>

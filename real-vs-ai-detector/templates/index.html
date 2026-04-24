@@ -9,10 +9,14 @@
 </head>
 <body>
 
+  <!-- ──── System Router Back Button ──── -->
+  <a href="http://localhost:8500/?view=home" target="_parent" style="position: fixed; top: 20px; left: 20px; z-index: 9999; background: rgba(99, 102, 241, 0.9); color: white; padding: 10px 18px; border-radius: 8px; text-decoration: none; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.3); font-family: sans-serif; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.2); transition: all 0.3s ease;">
+    ← Back to Router
+  </a>
   <!-- ──── Header ──── -->
   <div class="header">
     <h1>🔍 Real vs AI Image Detector</h1>
-    <p>Advanced multi-model detection with explainability</p>
+    <p>Advanced multi-model detection with explainability | <a href="/dashboard" style="color: var(--accent); text-decoration: none; font-weight: bold;">📊 View Dashboard</a></p>
     <div class="badge-row">
       <span class="tech-badge">🧠 Deep Learning</span>
       <span class="tech-badge">🔥 Grad-CAM</span>
@@ -42,14 +46,7 @@
         <!-- Image Preview -->
         <div class="preview-container" id="previewContainer">
           <img id="previewImg" src="" alt="Preview" />
-          <!-- ROI Canvas overlays the image (for Similar mode) -->
-          <div class="roi-canvas-container" id="roiCanvasContainer">
-            <canvas id="roiCanvas"></canvas>
-            <div class="roi-instructions" id="roiInstructions">
-              <span class="icon">✏️</span> Click and drag on the image to select a region (ROI)
-            </div>
-            <div class="roi-coords" id="roiCoords" style="display:none;"></div>
-          </div>
+
           <div class="quality-badge">Original Quality</div>
           <button class="remove-btn" id="removeBtn" title="Remove image">&times;</button>
         </div>
@@ -72,40 +69,13 @@
               <span class="model-sub">Grad-CAM</span>
             </label>
           </div>
-          <div>
-            <input type="radio" name="model" id="modelSimilar" value="similar" />
-            <label for="modelSimilar">
-              <span class="model-icon">🎯</span>
-              Find Similar
-              <span class="model-sub">ROI Match</span>
-            </label>
-          </div>
+
         </div>
 
 
 
 
-        <!-- Advanced Similarity Controls -->
-        <div class="threshold-control" id="thresholdControl" style="display:none; margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px;">
-          <div style="margin-bottom: 10px;">
-            <label style="display: block; font-size: 0.85rem; margin-bottom: 5px;">Matching Threshold Method:</label>
-            <select id="thresholdMethod" style="width: 100%; padding: 8px; border-radius: 6px; background: #1a2235; color: white; border: 1px solid #2a3449;">
-              <option value="top_k">Top-K Items</option>
-              <option value="statistical" selected>Statistical Deviation</option>
-              <option value="percentile">Top Percentile</option>
-            </select>
-          </div>
-          <div style="margin-bottom: 10px;">
-            <label style="display: flex; justify-content: space-between; font-size: 0.85rem;">
-              <span>Clustering EPS:</span> <span id="epsValue" style="color: var(--accent);">0.55</span>
-            </label>
-            <input type="range" id="epsSlider" min="0.1" max="0.9" step="0.05" value="0.55" style="width: 100%; margin-top: 5px;" />
-          </div>
-          <div style="display: flex; gap: 10px; margin-top: 10px;">
-            <button id="btnClustering" type="button" class="view-toggle-btn active" style="flex: 1; padding: 6px; font-size: 0.8rem; background: var(--accent); color: white; border: none; border-radius: 4px; cursor:pointer;">Cluster View</button>
-            <button id="btnSimilarity" type="button" class="view-toggle-btn" style="flex: 1; padding: 6px; font-size: 0.8rem; background: #1a2235; color: #8a9bb8; border: 1px solid #2a3449; border-radius: 4px; cursor:pointer;">Similarity View</button>
-          </div>
-        </div>
+
 
         <!-- Check Button -->
         <button class="btn-check" id="checkBtn" disabled>🔍 Analyze Image</button>
@@ -186,149 +156,6 @@
             <div class="fft-summary" id="fftSummary"></div>
           </div>
         </div>
-
-      </div>
-
-      <!-- Combined Results Section (YOLO + Classifier) -->
-      <div class="results-section" id="combinedResultsSection">
-
-        <!-- Combined Summary Header -->
-        <div class="combined-header" id="combinedHeader">
-          <div class="combined-stats">
-            <div class="stat-item">
-              <div class="stat-value" id="statTotal">0</div>
-              <div class="stat-label">Objects Detected</div>
-            </div>
-            <div class="stat-item real">
-              <div class="stat-value" id="statReal">0</div>
-              <div class="stat-label">Real Regions</div>
-            </div>
-            <div class="stat-item ai">
-              <div class="stat-value" id="statAI">0</div>
-              <div class="stat-label">AI Regions</div>
-            </div>
-          </div>
-          <div class="combined-summary" id="combinedSummary"></div>
-          <div class="result-model-badge" id="combinedModelBadge"></div>
-        </div>
-
-        <!-- Annotated Image -->
-        <div class="viz-grid">
-          <div class="viz-card" id="annotatedCard">
-            <div class="viz-title">🎯 YOLO + Grad-CAM Annotated</div>
-            <img id="annotatedImg" src="" alt="Annotated Image" />
-          </div>
-          <div class="viz-card" id="combinedOriginalCard">
-            <div class="viz-title">🖼️ Original Image</div>
-            <img id="combinedOriginalImg" src="" alt="Original" />
-          </div>
-        </div>
-
-        <!-- Per-Region Results Table -->
-        <div class="regions-table-card" id="regionsCard" style="display:none;">
-          <div class="section-title">📋 Per-Region Classification</div>
-          <div class="regions-table-wrapper">
-            <table class="regions-table" id="regionsTable">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Object</th>
-                  <th>YOLO Conf</th>
-                  <th>Classification</th>
-                  <th>AI/Real Conf</th>
-                  <th>Grad-CAM</th>
-                </tr>
-              </thead>
-              <tbody id="regionsBody"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- FFT Analysis for combined mode -->
-        <div class="viz-card full-width" id="combinedFftCard" style="display:none;">
-          <div class="viz-title">📡 FFT Frequency Analysis</div>
-          <div class="fft-metrics" id="combinedFftMetrics"></div>
-          <img id="combinedFftImg" src="" alt="FFT Spectrum" />
-          <div class="fft-summary" id="combinedFftSummary"></div>
-        </div>
-
-      </div>
-
-      <!-- Similarity Results Section (ADVANCED) -->
-      <div class="results-section" id="similarResultsSection">
-
-        <!-- Stats Header -->
-        <div class="similarity-header" id="similarityHeader">
-          <div class="similarity-stats">
-            <div class="stat-item">
-              <div class="stat-value" id="simStatDetected">0</div>
-              <div class="stat-label">Objects Detected</div>
-            </div>
-            <div class="stat-item real">
-              <div class="stat-value" id="simStatMatches">0</div>
-              <div class="stat-label">Similar Found</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-value" id="simStatClusters">0</div>
-              <div class="stat-label">Clusters</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-value" id="simStatThreshold">—</div>
-              <div class="stat-label">Threshold</div>
-            </div>
-          </div>
-          <div class="result-model-badge" id="simModelBadge">SIMILARITY SEARCH</div>
-        </div>
-
-        <!-- Cluster Legend -->
-        <div class="cluster-legend" id="clusterLegend" style="display:none;">
-          <div class="legend-title">🎨 Cluster Legend</div>
-          <div class="legend-items" id="legendItems"></div>
-        </div>
-
-        <!-- Annotated Images (togglable) -->
-        <div class="viz-grid">
-          <div class="viz-card" id="simAnnotatedCard">
-            <div class="viz-title">🎯 <span id="simVizLabel">Similarity Results</span></div>
-            <img id="simAnnotatedImg" src="" alt="Annotated Image" style="cursor: pointer;" title="Click to view full size" onclick="window.open(this.src, '_blank')" />
-            <div style="text-align: center; margin-top: 10px;">
-              <a id="simDownloadBtn" href="#" download="similarity_results.png" style="text-decoration: none; background: var(--accent); color: white; padding: 6px 12px; border-radius: 4px; font-size: 0.85rem; display: inline-block;">⬇️ Download Image</a>
-            </div>
-          </div>
-          <div class="viz-card" id="simOriginalCard">
-            <div class="viz-title">🖼️ Original Image</div>
-            <img id="simOriginalImg" src="" alt="Original" />
-          </div>
-        </div>
-
-        <!-- Match Table (with Cluster column) -->
-        <div class="regions-table-card" id="simMatchesCard" style="display:none;">
-          <div class="section-title">📋 Matched Objects (by Similarity)</div>
-          <div class="regions-table-wrapper">
-            <table class="regions-table" id="simMatchesTable">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Object</th>
-                  <th>Cluster</th>
-                  <th>YOLO Conf</th>
-                  <th>Similarity</th>
-                  <th>Score Bar</th>
-                </tr>
-              </thead>
-              <tbody id="simMatchesBody"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Cluster Summary -->
-        <div class="cluster-summary-card" id="clusterSummaryCard" style="display:none;">
-          <div class="section-title">📊 Cluster Summary</div>
-          <div class="cluster-counts" id="clusterCounts"></div>
-        </div>
-
-        <!-- Processing Time -->
-        <div class="processing-time" id="simProcessingTime"></div>
 
       </div>
 
@@ -443,41 +270,6 @@
       const patternIndicators = document.getElementById('patternIndicators');
       const keyFactors        = document.getElementById('keyFactors');
       const verdictReasoning  = document.getElementById('verdictReasoning');
-
-      // Combined Results
-      const combinedResultsSection = document.getElementById('combinedResultsSection');
-      const statTotal   = document.getElementById('statTotal');
-      const statReal    = document.getElementById('statReal');
-      const statAI      = document.getElementById('statAI');
-      const combinedSummary   = document.getElementById('combinedSummary');
-      const combinedModelBadge = document.getElementById('combinedModelBadge');
-      const annotatedImg      = document.getElementById('annotatedImg');
-      const combinedOriginalImg = document.getElementById('combinedOriginalImg');
-      const regionsCard  = document.getElementById('regionsCard');
-      const regionsBody  = document.getElementById('regionsBody');
-      const combinedFftCard    = document.getElementById('combinedFftCard');
-      const combinedFftMetrics = document.getElementById('combinedFftMetrics');
-      const combinedFftImg     = document.getElementById('combinedFftImg');
-      const combinedFftSummary = document.getElementById('combinedFftSummary');
-
-      // Similarity Results
-      const similarResultsSection = document.getElementById('similarResultsSection');
-      const simStatDetected  = document.getElementById('simStatDetected');
-      const simStatMatches   = document.getElementById('simStatMatches');
-      const simStatThreshold = document.getElementById('simStatThreshold');
-      const simAnnotatedImg  = document.getElementById('simAnnotatedImg');
-      const simOriginalImg   = document.getElementById('simOriginalImg');
-      const simMatchesCard   = document.getElementById('simMatchesCard');
-      const simMatchesBody   = document.getElementById('simMatchesBody');
-      const simModelBadge    = document.getElementById('simModelBadge');
-      const simStatClusters  = document.getElementById('simStatClusters');
-      const clusterLegend    = document.getElementById('clusterLegend');
-      const legendItems      = document.getElementById('legendItems');
-      const clusterSummaryCard = document.getElementById('clusterSummaryCard');
-      const clusterCounts    = document.getElementById('clusterCounts');
-      const simProcessingTime = document.getElementById('simProcessingTime');
-      const simVizLabel      = document.getElementById('simVizLabel');
-
       // Patch Results
       const patchResultsSection = document.getElementById('patchResultsSection');
       const patchStatCount    = document.getElementById('patchStatCount');
@@ -489,24 +281,6 @@
       const patchArtifactsBody = document.getElementById('patchArtifactsBody');
       const patchProcessingTime = document.getElementById('patchProcessingTime');
       const patchModelBadge    = document.getElementById('patchModelBadge');
-
-      // ROI Canvas
-      const roiCanvasContainer = document.getElementById('roiCanvasContainer');
-      const roiCanvas    = document.getElementById('roiCanvas');
-      const roiCtx       = roiCanvas.getContext('2d');
-      const roiInstructions = document.getElementById('roiInstructions');
-      const roiCoords    = document.getElementById('roiCoords');
-
-      // Advanced Controls
-      const thresholdControl = document.getElementById('thresholdControl');
-      const thresholdMethod  = document.getElementById('thresholdMethod');
-      const epsSlider        = document.getElementById('epsSlider');
-      const epsValue         = document.getElementById('epsValue');
-      const btnClustering    = document.getElementById('btnClustering');
-      const btnSimilarity    = document.getElementById('btnSimilarity');
-      let currentViewMode    = 'clustering';
-      let lastAdvancedData   = null;  // Store last response for toggle
-
       // History
       const historyList = document.getElementById('historyList');
 
@@ -522,9 +296,6 @@
       let naturalW = 0, naturalH = 0;
 
       /* ── Helpers ───────────────────────────────────────────── */
-      function isSimilarMode() {
-        return document.querySelector('input[name="model"]:checked')?.value === 'similar';
-      }
 
       function showError(msg) {
         errorToast.textContent = msg;
@@ -535,55 +306,14 @@
 
       function hideAllResults() {
         resultsSection.classList.remove('show');
-        combinedResultsSection.classList.remove('show');
-        similarResultsSection.classList.remove('show');
-        patchResultsSection.classList.remove('show');
-      }
-
-      function updateSimilarModeUI() {
-        const similar = isSimilarMode();
-        roiCanvasContainer.classList.toggle('show', similar && previewContainer.classList.contains('show'));
-        thresholdControl.classList.toggle('show', similar);
-        if (!similar) {
-          hasROI = false;
-          roiCoords.style.display = 'none';
-          roiInstructions.style.display = '';
+        if (typeof patchResultsSection !== 'undefined' && patchResultsSection) {
+            patchResultsSection.classList.remove('show');
         }
       }
-
-      // EPS slider handler
-      epsSlider.addEventListener('input', () => {
-        epsValue.textContent = parseFloat(epsSlider.value).toFixed(2);
-      });
-
-      // View mode toggle buttons
-      btnClustering.addEventListener('click', () => {
-        currentViewMode = 'clustering';
-        btnClustering.classList.add('active');
-        btnSimilarity.classList.remove('active');
-        if (lastAdvancedData) {
-          simAnnotatedImg.src = lastAdvancedData.cluster_image_url || lastAdvancedData.annotated_image_url;
-          simVizLabel.textContent = 'Cluster View';
-        }
-      });
-      btnSimilarity.addEventListener('click', () => {
-        currentViewMode = 'similarity';
-        btnSimilarity.classList.add('active');
-        btnClustering.classList.remove('active');
-        if (lastAdvancedData) {
-          simAnnotatedImg.src = lastAdvancedData.annotated_image_url;
-          simVizLabel.textContent = 'Similarity View';
-        }
-      });
-
       // Listen for model selector changes
       document.querySelectorAll('input[name="model"]').forEach(radio => {
         radio.addEventListener('change', () => {
-          updateSimilarModeUI();
           hideAllResults();
-          if (isSimilarMode() && selectedFile) {
-            setupROICanvas();
-          }
         });
       });
 
@@ -605,9 +335,7 @@
           previewImg.onload = () => {
             naturalW = previewImg.naturalWidth;
             naturalH = previewImg.naturalHeight;
-            if (isSimilarMode()) {
-              setupROICanvas();
-            }
+            
           };
         };
         reader.readAsDataURL(file);
@@ -622,190 +350,8 @@
         fileInput.value = '';
         hideError();
         hideAllResults();
-        hasROI = false;
-        roiCanvasContainer.classList.remove('show');
-        roiCoords.style.display = 'none';
-        roiInstructions.style.display = '';
+        
       }
-
-      /* ── ROI Canvas Setup ────────────────────────────────────── */
-      function setupROICanvas() {
-        roiCanvasContainer.classList.add('show');
-        roiInstructions.style.display = '';
-        roiCoords.style.display = 'none';
-        hasROI = false;
-
-        // Match canvas pixel buffer to the displayed image size
-        // The image uses object-fit: contain, so we need its actual rendered area
-        const imgW = previewImg.offsetWidth;
-        const imgH = previewImg.offsetHeight;
-
-        roiCanvas.width = imgW;
-        roiCanvas.height = imgH;
-
-        clearCanvasOverlay();
-      }
-
-      function clearCanvasOverlay() {
-        roiCtx.clearRect(0, 0, roiCanvas.width, roiCanvas.height);
-      }
-
-      function drawROIRect(x1, y1, x2, y2) {
-        clearCanvasOverlay();
-
-        // Semi-transparent overlay outside ROI
-        roiCtx.fillStyle = 'rgba(0, 0, 0, 0.45)';
-        roiCtx.fillRect(0, 0, roiCanvas.width, roiCanvas.height);
-
-        // Clear the ROI region
-        const w = x2 - x1;
-        const h = y2 - y1;
-        roiCtx.clearRect(x1, y1, w, h);
-
-        // Dashed cyan border
-        roiCtx.strokeStyle = '#00ffff';
-        roiCtx.lineWidth = 2;
-        roiCtx.setLineDash([8, 4]);
-        roiCtx.strokeRect(x1, y1, w, h);
-        roiCtx.setLineDash([]);
-
-        // Corner markers
-        const cs = 10;
-        roiCtx.strokeStyle = '#00ffff';
-        roiCtx.lineWidth = 3;
-        // Top-left
-        roiCtx.beginPath(); roiCtx.moveTo(x1, y1 + cs); roiCtx.lineTo(x1, y1); roiCtx.lineTo(x1 + cs, y1); roiCtx.stroke();
-        // Top-right
-        roiCtx.beginPath(); roiCtx.moveTo(x2 - cs, y1); roiCtx.lineTo(x2, y1); roiCtx.lineTo(x2, y1 + cs); roiCtx.stroke();
-        // Bottom-left
-        roiCtx.beginPath(); roiCtx.moveTo(x1, y2 - cs); roiCtx.lineTo(x1, y2); roiCtx.lineTo(x1 + cs, y2); roiCtx.stroke();
-        // Bottom-right
-        roiCtx.beginPath(); roiCtx.moveTo(x2 - cs, y2); roiCtx.lineTo(x2, y2); roiCtx.lineTo(x2, y2 - cs); roiCtx.stroke();
-      }
-
-      function canvasToNatural(cx, cy) {
-        // Convert canvas pixel coords to natural image coords
-        const scaleX = naturalW / roiCanvas.width;
-        const scaleY = naturalH / roiCanvas.height;
-        return {
-          x: Math.round(cx * scaleX),
-          y: Math.round(cy * scaleY)
-        };
-      }
-
-      /* ── ROI Mouse Events ────────────────────────────────────── */
-      roiCanvas.addEventListener('mousedown', (e) => {
-        const rect = roiCanvas.getBoundingClientRect();
-        roiStartX = e.clientX - rect.left;
-        roiStartY = e.clientY - rect.top;
-        isDrawing = true;
-      });
-
-      roiCanvas.addEventListener('mousemove', (e) => {
-        if (!isDrawing) return;
-        const rect = roiCanvas.getBoundingClientRect();
-        roiEndX = Math.max(0, Math.min(e.clientX - rect.left, roiCanvas.width));
-        roiEndY = Math.max(0, Math.min(e.clientY - rect.top, roiCanvas.height));
-
-        const x1 = Math.min(roiStartX, roiEndX);
-        const y1 = Math.min(roiStartY, roiEndY);
-        const x2 = Math.max(roiStartX, roiEndX);
-        const y2 = Math.max(roiStartY, roiEndY);
-        drawROIRect(x1, y1, x2, y2);
-      });
-
-      roiCanvas.addEventListener('mouseup', (e) => {
-        if (!isDrawing) return;
-        isDrawing = false;
-        const rect = roiCanvas.getBoundingClientRect();
-        roiEndX = Math.max(0, Math.min(e.clientX - rect.left, roiCanvas.width));
-        roiEndY = Math.max(0, Math.min(e.clientY - rect.top, roiCanvas.height));
-
-        const cx1 = Math.min(roiStartX, roiEndX);
-        const cy1 = Math.min(roiStartY, roiEndY);
-        const cx2 = Math.max(roiStartX, roiEndX);
-        const cy2 = Math.max(roiStartY, roiEndY);
-
-        // Minimum size check
-        if (cx2 - cx1 < 10 || cy2 - cy1 < 10) {
-          hasROI = false;
-          roiCoords.style.display = 'none';
-          roiInstructions.style.display = '';
-          clearCanvasOverlay();
-          return;
-        }
-
-        hasROI = true;
-        roiInstructions.style.display = 'none';
-
-        const nat1 = canvasToNatural(cx1, cy1);
-        const nat2 = canvasToNatural(cx2, cy2);
-
-        roiCoords.style.display = 'block';
-        roiCoords.innerHTML = `
-          <div style="display:flex; flex-direction:column; gap:8px;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <strong>ROI Vector Data:</strong>
-              <span class="roi-size" style="color:var(--accent); font-size:0.8rem;">${nat2.x - nat1.x} × ${nat2.y - nat1.y}</span>
-            </div>
-            <div style="display:flex; gap:10px;">
-              <input type="number" id="roiEditX1" value="${nat1.x}" style="width:60px; background:#1a2235; border:1px solid #2a3449; color:white; border-radius:4px; padding:2px;">
-              <input type="number" id="roiEditY1" value="${nat1.y}" style="width:60px; background:#1a2235; border:1px solid #2a3449; color:white; border-radius:4px; padding:2px;">
-              <span style="color:#8a9bb8;">→</span>
-              <input type="number" id="roiEditX2" value="${nat2.x}" style="width:60px; background:#1a2235; border:1px solid #2a3449; color:white; border-radius:4px; padding:2px;">
-              <input type="number" id="roiEditY2" value="${nat2.y}" style="width:60px; background:#1a2235; border:1px solid #2a3449; color:white; border-radius:4px; padding:2px;">
-            </div>
-            <button id="roiUpdateBtn" type="button" style="background:#2a3449; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:0.8rem; cursor:pointer; align-self:flex-end;">Redraw Geometry</button>
-          </div>
-        `;
-
-        document.getElementById('roiUpdateBtn').addEventListener('click', () => {
-          let nx1 = parseInt(document.getElementById('roiEditX1').value) || 0;
-          let ny1 = parseInt(document.getElementById('roiEditY1').value) || 0;
-          let nx2 = parseInt(document.getElementById('roiEditX2').value) || 0;
-          let ny2 = parseInt(document.getElementById('roiEditY2').value) || 0;
-          
-          const scaleX = roiCanvas.width / naturalW;
-          const scaleY = roiCanvas.height / naturalH;
-          
-          let kx1 = Math.round(nx1 * scaleX);
-          let ky1 = Math.round(ny1 * scaleY);
-          let kx2 = Math.round(nx2 * scaleX);
-          let ky2 = Math.round(ny2 * scaleY);
-          
-          roiStartX = kx1; roiStartY = ky1; roiEndX = kx2; roiEndY = ky2;
-          drawROIRect(kx1, ky1, kx2, ky2);
-        });
-
-        drawROIRect(cx1, cy1, cx2, cy2);
-      });
-
-      // Touch support for mobile
-      roiCanvas.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        const touch = e.touches[0];
-        const rect = roiCanvas.getBoundingClientRect();
-        roiStartX = touch.clientX - rect.left;
-        roiStartY = touch.clientY - rect.top;
-        isDrawing = true;
-      });
-      roiCanvas.addEventListener('touchmove', (e) => {
-        e.preventDefault();
-        if (!isDrawing) return;
-        const touch = e.touches[0];
-        const rect = roiCanvas.getBoundingClientRect();
-        roiEndX = Math.max(0, Math.min(touch.clientX - rect.left, roiCanvas.width));
-        roiEndY = Math.max(0, Math.min(touch.clientY - rect.top, roiCanvas.height));
-        const x1 = Math.min(roiStartX, roiEndX);
-        const y1 = Math.min(roiStartY, roiEndY);
-        const x2 = Math.max(roiStartX, roiEndX);
-        const y2 = Math.max(roiStartY, roiEndY);
-        drawROIRect(x1, y1, x2, y2);
-      });
-      roiCanvas.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        roiCanvas.dispatchEvent(new MouseEvent('mouseup', { clientX: roiEndX, clientY: roiEndY }));
-      });
 
       /* ── Browse click ──────────────────────────────────────── */
       browseLink.addEventListener('click', (e) => { e.stopPropagation(); fileInput.click(); });
@@ -874,11 +420,11 @@
       }
 
       /* ── Render FFT analysis ────────────────────────────────── */
-      function renderFFTAnalysis(fft, target = 'standard') {
-        const card = target === 'combined' ? combinedFftCard : fftCard;
-        const metrics = target === 'combined' ? combinedFftMetrics : fftMetrics;
-        const img = target === 'combined' ? combinedFftImg : fftImg;
-        const summary = target === 'combined' ? combinedFftSummary : fftSummary;
+      function renderFFTAnalysis(fft) {
+        const card = fftCard;
+        const metrics = fftMetrics;
+        const img = fftImg;
+        const summary = fftSummary;
 
         if (!fft || fft.error) {
           card.style.display = 'none';
@@ -974,196 +520,6 @@
         verdictReasoning.className = 'verdict-reasoning ' + cls;
       }
 
-      /* ── Render combined results ─────────────────────────────── */
-      function renderCombinedResults(data) {
-        // Stats
-        statTotal.textContent = data.total_objects;
-        statReal.textContent = data.real_count;
-        statAI.textContent = data.ai_count;
-
-        // Summary
-        combinedSummary.textContent = data.summary;
-        const isAI = data.ai_count >= data.real_count && data.ai_count > 0;
-        combinedSummary.className = 'combined-summary ' + (isAI ? 'ai' : 'real');
-
-        // Model badge
-        combinedModelBadge.textContent = `COMBINED (${data.classifier_used.toUpperCase()}) + YOLOv8`;
-
-        // Images
-        annotatedImg.src = data.annotated_image_url;
-        combinedOriginalImg.src = data.original_image_url;
-
-        // Regions table
-        if (data.regions && data.regions.length > 0) {
-          regionsCard.style.display = 'block';
-          regionsBody.innerHTML = '';
-
-          data.regions.forEach((region, i) => {
-            const isRegionAI = region.classification === 'AI Generated';
-            const cls = isRegionAI ? 'ai' : 'real';
-            const row = document.createElement('tr');
-            row.innerHTML = `
-              <td>${i + 1}</td>
-              <td><span class="object-badge">${region.object_class}</span></td>
-              <td>${(region.yolo_confidence * 100).toFixed(1)}%</td>
-              <td><span class="classification-tag ${cls}">${region.classification}</span></td>
-              <td><strong>${region.classification_confidence}%</strong></td>
-              <td>${region.has_gradcam ? '✅' : '❌'}</td>
-            `;
-            regionsBody.appendChild(row);
-          });
-        } else {
-          regionsCard.style.display = 'none';
-        }
-
-        // FFT for combined
-        renderFFTAnalysis(data.fft_analysis, 'combined');
-
-        // Show combined section
-        combinedResultsSection.classList.add('show');
-      }
-
-      /* ── Render similarity results (advanced) ──────────────────── */
-      function renderSimilarityResults(data) {
-        // Store for view toggle
-        lastAdvancedData = data;
-
-        // Stats header
-        simStatDetected.textContent = data.total_detected;
-        simStatMatches.textContent = data.match_count;
-        simStatThreshold.textContent = data.threshold_info
-          ? `${(data.threshold_info.threshold * 100).toFixed(0)}%`
-          : (data.threshold ? (data.threshold * 100).toFixed(0) + '%' : '—');
-
-        // Clusters stat
-        const nClusters = data.clustering ? data.clustering.n_clusters : 0;
-        simStatClusters.textContent = nClusters;
-
-        // Badge
-        const src = data.embedding_source || 'efficientnet';
-        const detector = data.detector_model || 'yolo';
-        const method = data.threshold_info ? ` • ${data.threshold_info.method.toUpperCase()}` : '';
-        simModelBadge.textContent = `SIMILARITY SEARCH (${src.toUpperCase()} + ${detector.toUpperCase()}${method})`;
-
-        // Primary image (based on current view mode)
-        if (data.cluster_image_url && currentViewMode === 'clustering') {
-          simAnnotatedImg.src = data.cluster_image_url;
-          simVizLabel.textContent = 'Cluster View';
-        } else {
-          simAnnotatedImg.src = data.annotated_image_url;
-          simVizLabel.textContent = 'Similarity View';
-        }
-        
-        const simDownloadBtn = document.getElementById('simDownloadBtn');
-        if (simDownloadBtn) {
-          simDownloadBtn.href = simAnnotatedImg.src;
-        }
-        simOriginalImg.src = data.original_image_url;
-
-        // ── Cluster Legend ───────────────────────────────────────
-        if (data.clustering && data.clustering.cluster_colors && nClusters > 0) {
-          clusterLegend.style.display = 'block';
-          legendItems.innerHTML = '';
-
-          const roiCid = data.clustering.roi_cluster_id;
-          const colors = data.clustering.cluster_colors;
-          const summary = data.clustering.cluster_summary || {};
-
-          for (const [cid, hexColor] of Object.entries(colors)) {
-            const cidInt = parseInt(cid);
-            const count = summary[cid] || 0;
-            const isRoi = cidInt === roiCid;
-            const labelText = cidInt === -1
-              ? `Noise (${count})`
-              : `Cluster ${cidInt} (${count})${isRoi ? ' ← ROI' : ''}`;
-
-            const item = document.createElement('div');
-            item.className = 'legend-item' + (isRoi ? ' roi-cluster' : '');
-            item.innerHTML = `
-              <span class="legend-swatch" style="background:${hexColor}"></span>
-              ${labelText}
-            `;
-            legendItems.appendChild(item);
-          }
-        } else {
-          clusterLegend.style.display = 'none';
-        }
-
-        // ── Cluster Summary Card ─────────────────────────────────
-        if (data.clustering && data.clustering.cluster_summary && nClusters > 0) {
-          clusterSummaryCard.style.display = 'block';
-          clusterCounts.innerHTML = '';
-
-          const roiCid = data.clustering.roi_cluster_id;
-          const summary = data.clustering.cluster_summary;
-          const colors = data.clustering.cluster_colors || {};
-
-          for (const [cid, count] of Object.entries(summary)) {
-            const cidInt = parseInt(cid);
-            const isRoi = cidInt === roiCid;
-            const color = colors[cid] || '#787878';
-            const label = cidInt === -1 ? 'Noise' : `Cluster ${cidInt}`;
-
-            const item = document.createElement('div');
-            item.className = 'cluster-count-item' + (isRoi ? ' roi-cluster' : '');
-            item.innerHTML = `
-              <span class="count-swatch" style="background:${color}"></span>
-              <span class="count-label">${label}${isRoi ? ' (ROI)' : ''}</span>
-              <span class="count-value">${count}</span>
-            `;
-            clusterCounts.appendChild(item);
-          }
-        } else {
-          clusterSummaryCard.style.display = 'none';
-        }
-
-        // ── Match Table (with Cluster column) ────────────────────
-        if (data.matches && data.matches.length > 0) {
-          simMatchesCard.style.display = 'block';
-          simMatchesBody.innerHTML = '';
-
-          const colors = (data.clustering && data.clustering.cluster_colors) || {};
-
-          data.matches.forEach((match, i) => {
-            const simPct = (match.similarity * 100).toFixed(1);
-            const barColor = match.similarity > 0.85 ? 'var(--success)' :
-                             match.similarity > 0.7 ? 'var(--warning)' : 'var(--accent-light)';
-            const cid = match.cluster_id !== undefined ? match.cluster_id : '—';
-            const cidColor = colors[String(cid)] || '#787878';
-            const cidLabel = cid === -1 ? 'Noise' : `C${cid}`;
-
-            const row = document.createElement('tr');
-            row.innerHTML = `
-              <td>${i + 1}</td>
-              <td><span class="object-badge">${match.class_name}</span></td>
-              <td>
-                <span style="display:inline-flex;align-items:center;gap:4px">
-                  <span style="width:8px;height:8px;border-radius:2px;background:${cidColor};display:inline-block"></span>
-                  ${cidLabel}
-                </span>
-              </td>
-              <td>${(match.confidence * 100).toFixed(1)}%</td>
-              <td><strong class="sim-score">${simPct}%</strong></td>
-              <td>
-                <div class="mini-bar" style="width:100px">
-                  <div class="mini-fill" style="width:${simPct}%; background:${barColor}"></div>
-                </div>
-              </td>
-            `;
-            simMatchesBody.appendChild(row);
-          });
-        } else {
-          simMatchesCard.style.display = 'none';
-        }
-
-        // ── Processing Time ──────────────────────────────────────
-        if (data.processing_time_ms) {
-          simProcessingTime.textContent = `⏱ Processed in ${data.processing_time_ms}ms`;
-        }
-
-        similarResultsSection.classList.add('show');
-      }
-
       /* ── Render patch analysis results ──────────────────────── */
       function renderPatchResults(data) {
         patchStatCount.textContent = data.patch_count || 0;
@@ -1220,12 +576,8 @@
       /* ── Add to history ─────────────────────────────────────── */
       function addToHistory(data) {
         const entry = {
-          label: data.label || (data.mode === 'similar'
-            ? `${data.match_count} matches`
-            : (data.ai_count >= data.real_count && data.ai_count > 0 ? 'AI Generated' : 'Real Image')),
-          confidence: data.confidence || (data.mode === 'similar'
-            ? data.match_count
-            : (data.total_objects ? Math.round(Math.max(data.ai_count, data.real_count) / data.total_objects * 100) : 0)),
+          label: data.label || 'Real Image',
+          confidence: data.confidence || 0,
           model: data.model_used || (data.mode === 'similar'
             ? 'SIMILARITY'
             : `COMBINED (${(data.classifier_used || '').toUpperCase()})`),
@@ -1265,6 +617,7 @@
         });
       }
 
+      
       /* ── Check button (upload + predict) ────────────────────── */
       checkBtn.addEventListener('click', async () => {
         if (!selectedFile) return;
@@ -1272,14 +625,7 @@
         hideAllResults();
 
         const selectedMode = document.querySelector('input[name="model"]:checked').value;
-        const isSimilar = selectedMode === 'similar';
         const isExplain = selectedMode === 'explain';
-
-        // Validate ROI for similar mode
-        if (isSimilar && !hasROI) {
-          showError('Please draw a region of interest (ROI) on the image first.');
-          return;
-        }
 
         // Show spinner
         checkBtn.disabled = true;
@@ -1290,36 +636,9 @@
 
         let endpoint;
 
-        if (isSimilar) {
-          // Get natural ROI coordinates
-          const cx1 = Math.min(roiStartX, roiEndX);
-          const cy1 = Math.min(roiStartY, roiEndY);
-          const cx2 = Math.max(roiStartX, roiEndX);
-          const cy2 = Math.max(roiStartY, roiEndY);
-
-          const nat1 = canvasToNatural(cx1, cy1);
-          const nat2 = canvasToNatural(cx2, cy2);
-
-          formData.append('x1', nat1.x);
-          formData.append('y1', nat1.y);
-          formData.append('x2', nat2.x);
-          formData.append('y2', nat2.y);
-
-          // Use UI params instead of hardcoded values for dynamic tuning
-          formData.append('threshold_method', thresholdMethod.value || 'statistical');
-          formData.append('top_k', '10'); // keep top_k default, can be added to UI if needed
-          formData.append('eps', epsSlider.value || '0.55');
-          formData.append('view_mode', currentViewMode || 'clustering');
-          formData.append('multiplier', '0.5'); // keep default
-          formData.append('percentile', '90'); // keep default
-          formData.append('min_samples', '2'); // keep default
-
-          endpoint = '/predict/similar_advanced';
-        } else {
-          // Both "detect" and "explain" use ensemble
-          formData.append('model', 'ensemble');
-          endpoint = '/predict';
-        }
+        // Both "detect" and "explain" use ensemble (or the new unified pipeline)
+        formData.append('model', 'ensemble');
+        endpoint = '/predict';
 
         try {
           const resp = await fetch(endpoint, { method: 'POST', body: formData });
@@ -1330,76 +649,69 @@
             return;
           }
 
-          if (isSimilar || data.mode === 'similar' || data.mode === 'similar_advanced') {
-            // ── Similarity mode results ──────────────────────────
-            renderSimilarityResults(data);
-            addToHistory(data);
+          // ── Detect / Explain mode results ────────────────────
+          const isAI = data.label === 'AI Generated';
+          resultHeader.className = 'result-header ' + (isAI ? 'ai' : 'real');
 
+          resultLabel.textContent = data.label;
+          resultLabel.className = 'result-label ' + (isAI ? 'ai' : 'real');
+
+          resultConf.innerHTML = `Confidence: <strong>${data.confidence}%</strong>`;
+          resultModel.textContent = `Model: ${data.model_used}`;
+
+          // Animate gauge
+          const pct = data.confidence;
+          confidenceGauge.style.setProperty('--gauge-pct', pct);
+          if (isAI) {
+            confidenceGauge.style.background = `conic-gradient(var(--danger) ${pct}%, rgba(255,255,255,0.06) 0)`;
           } else {
-            // ── Detect / Explain mode results ────────────────────
-            const isAI = data.label === 'AI Generated';
-            resultHeader.className = 'result-header ' + (isAI ? 'ai' : 'real');
+            confidenceGauge.style.background = `conic-gradient(var(--success) ${pct}%, rgba(255,255,255,0.06) 0)`;
+          }
+          gaugeValue.textContent = `${pct}%`;
 
-            resultLabel.textContent = data.label;
-            resultLabel.className = 'result-label ' + (isAI ? 'ai' : 'real');
+          // Individual results (ensemble)
+          if (data.individual_results) {
+            renderIndividualResults(data.individual_results);
+          } else {
+            individualResults.style.display = 'none';
+          }
 
-            resultConf.innerHTML = `Confidence: <strong>${data.confidence}%</strong>`;
-            resultModel.textContent = `Model: ${data.model_used}`;
+          // Explanation card
+          if (isExplain) {
+            renderExplanation(data.explanation, data.label);
 
-            // Animate gauge
-            const pct = data.confidence;
-            confidenceGauge.style.setProperty('--gauge-pct', pct);
-            if (isAI) {
-              confidenceGauge.style.background = `conic-gradient(var(--danger) ${pct}%, rgba(255,255,255,0.06) 0)`;
+            // Grad-CAM visualization
+            if (data.gradcam_url) {
+              gradcamCard.style.display = 'block';
+              gradcamImg.src = data.gradcam_url;
+              originalCard.style.display = 'block';
+              originalImg.src = data.image_url;
             } else {
-              confidenceGauge.style.background = `conic-gradient(var(--success) ${pct}%, rgba(255,255,255,0.06) 0)`;
-            }
-            gaugeValue.textContent = `${pct}%`;
-
-            // Individual results (ensemble)
-            if (data.individual_results) {
-              renderIndividualResults(data.individual_results);
-            } else {
-              individualResults.style.display = 'none';
-            }
-
-            // Explanation card
-            if (isExplain) {
-              renderExplanation(data.explanation, data.label);
-
-              // Grad-CAM visualization
-              if (data.gradcam_url) {
-                gradcamCard.style.display = 'block';
-                gradcamImg.src = data.gradcam_url;
-                originalCard.style.display = 'block';
-                originalImg.src = data.image_url;
-              } else {
-                gradcamCard.style.display = 'none';
-                originalCard.style.display = 'none';
-              }
-
-              // FFT analysis
-              renderFFTAnalysis(data.fft_analysis, 'standard');
-            } else {
-              explanationCard.style.display = 'none';
               gradcamCard.style.display = 'none';
               originalCard.style.display = 'none';
-              fftCard.style.display = 'none';
             }
 
-            // Show results section
-            resultsSection.classList.add('show');
+            // FFT analysis
+            renderFFTAnalysis(data.fft_analysis, 'standard');
+          } else {
+            explanationCard.style.display = 'none';
+            gradcamCard.style.display = 'none';
+            originalCard.style.display = 'none';
+            fftCard.style.display = 'none';
+          }
 
-            // Add to history
-            addToHistory(data);
+          // Show results section
+          resultsSection.classList.add('show');
 
-            // Auto-scroll to explanation if "Explain" mode
-            if (isExplain) {
-              setTimeout(() => {
-                const explCard = document.getElementById('explanationCard');
-                if (explCard) explCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }, 300);
-            }
+          // Add to history
+          addToHistory(data);
+
+          // Auto-scroll to explanation if "Explain" mode
+          if (isExplain) {
+            setTimeout(() => {
+              const explCard = document.getElementById('explanationCard');
+              if (explCard) explCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 300);
           }
 
         } catch (err) {
@@ -1411,6 +723,7 @@
       });
 
       /* ── Prevent default drag on window ─────────────────────── */
+
       ['dragover', 'drop'].forEach(evt =>
         window.addEventListener(evt, (e) => e.preventDefault())
       );

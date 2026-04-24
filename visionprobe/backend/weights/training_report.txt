@@ -1,0 +1,46 @@
+======================================================================
+  REAL vs AI IMAGE DETECTION - TRAINING REPORT
+======================================================================
+
+  Date: 2026-04-24T20:43:37.219214
+  Pipeline: multi-branch-xgboost
+
+  ARCHITECTURE:
+    CLIP ViT-L/14: 768-dim -> PCA(128)
+    EfficientNetV2-L: 1280-dim -> PCA(128)
+    FFT frequency: 8-dim
+    SRM noise: 15-dim
+    Total features: 279
+    Classifier: XGBoost
+    Calibration: isotonic
+
+  DATASET:
+    Samples/class: 1000
+    Split: 70/15/15 (train/val/test)
+    Augmentation: Real images only (flip, color jitter, gaussian noise)
+
+  TRAIN RESULTS:
+    Accuracy:  1.0000
+    AUC-ROC:   1.0000
+    Precision: 1.0000
+    Recall:    1.0000
+    F1 Score:  1.0000
+
+  VALIDATION RESULTS:
+    Accuracy:  0.9933
+    AUC-ROC:   0.9998
+    Precision: 0.9901
+    Recall:    0.9967
+    F1 Score:  0.9934
+
+  TEST RESULTS:
+    Accuracy:  0.9717
+    AUC-ROC:   0.9945
+    Precision: 0.9829
+    Recall:    0.9600
+    F1 Score:  0.9713
+
+  OVERFITTING GAP: 0.0067
+  STATUS: NO OVERFITTING - good
+
+======================================================================

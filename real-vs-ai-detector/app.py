@@ -36,6 +36,9 @@ def create_app() -> Flask:
     # ── Register blueprints ─────────────────────────────────────
     app.register_blueprint(main_bp)
 
+    import history_db
+    history_db.init()
+
     logger.info("Flask application initialized.")
     logger.info(f"Debug mode: {FLASK_DEBUG}")
 
@@ -47,20 +50,9 @@ def create_app() -> Flask:
 if __name__ == "__main__":
     print()
     print("=" * 56)
-    print("  🔍 Real vs AI Image Detector — Production Server")
+    print("  Real vs AI Image Detector - Production Server")
     print("=" * 56)
     print()
-    print("  Features:")
-    print("  ├── Multi-model inference (ResNet50, EfficientNet)")
-    print("  ├── Ensemble predictions (weighted voting)")
-    print("  ├── Grad-CAM explainability heatmaps")
-    print("  ├── Dual AI/Real explanation engine")
-    print("  ├── FFT frequency analysis")
-    print("  ├── REST API (/api/predict)")
-    print("  └── Upload history tracking")
-    print()
-    print("  🌐 Open http://127.0.0.1:5000 in your browser")
-    print()
-
     app = create_app()
-    app.run(debug=FLASK_DEBUG, host="0.0.0.0", port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(debug=FLASK_DEBUG, host="0.0.0.0", port=port)
