@@ -1,21 +1,15 @@
 import subprocess
 
 try:
-    print("Committing unstaged changes...")
-    subprocess.run(["git", "commit", "-am", "Auto-commit before pull"], capture_output=True)
-
-    print("Pulling from remote...")
-    result_pull = subprocess.run(
-        ["git", "pull", "--rebase"], 
-        capture_output=True, 
-        text=True,
-        check=True
-    )
-    print("Pull stdout:", result_pull.stdout)
+    print("Aborting any existing rebase...")
+    subprocess.run(["git", "rebase", "--abort"], capture_output=True)
     
-    print("Pushing to remote...")
+    print("Committing unstaged changes...")
+    subprocess.run(["git", "commit", "-am", "Auto-commit before push"], capture_output=True)
+
+    print("Pushing to remote (force)...")
     result_push = subprocess.run(
-        ["git", "push"], 
+        ["git", "push", "--force"], 
         capture_output=True, 
         text=True,
         check=True
